@@ -1,0 +1,451 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
+local MainGui = Instance.new("ScreenGui")
+local MainReal = Instance.new("Frame")
+local ScrollingFrame = Instance.new("ScrollingFrame")
+local TextLabel = Instance.new("TextLabel")
+local TextLabel_2 = Instance.new("TextLabel")
+local TextLabel_3 = Instance.new("TextLabel")
+local TextLabel_4 = Instance.new("TextLabel")
+local TextLabel_5 = Instance.new("TextLabel")
+local X = Instance.new("TextButton")
+local UICorner = Instance.new("UICorner")
+local TextLabel_6 = Instance.new("TextLabel")
+local Read = Instance.new("Frame")
+local TextLabel_7 = Instance.new("TextLabel")
+local TextLabel_8 = Instance.new("TextLabel")
+local TextLabel_9 = Instance.new("TextLabel")
+local TextLabel_10 = Instance.new("TextLabel")
+local X_2 = Instance.new("TextButton")
+local UICorner_2 = Instance.new("UICorner")
+local TextLabel_11 = Instance.new("TextLabel")
+local TextLabel_12 = Instance.new("TextLabel")
+
+--Properties:
+
+MainGui.Name = "MainGui"
+MainGui.Parent = game.CoreGui
+MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+MainReal.Name = "MainReal"
+MainReal.Parent = MainGui
+MainReal.Active = true
+MainReal.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+MainReal.BackgroundTransparency = 0.250
+MainReal.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MainReal.BorderSizePixel = 5
+MainReal.Position = UDim2.new(0.360435873, 0, 0.374407649, 0)
+MainReal.Size = UDim2.new(0, 333, 0, 211)
+
+ScrollingFrame.Parent = MainReal
+ScrollingFrame.Active = true
+ScrollingFrame.BackgroundColor3 = Color3.fromRGB(0, 255, 234)
+ScrollingFrame.BackgroundTransparency = 0.250
+ScrollingFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ScrollingFrame.BorderSizePixel = 5
+ScrollingFrame.Position = UDim2.new(0.94894892, 0, 0.0568720363, 0)
+ScrollingFrame.Size = UDim2.new(0, -299, 0, 186)
+
+TextLabel.Parent = ScrollingFrame
+TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel.BackgroundTransparency = 1.000
+TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel.BorderSizePixel = 0
+TextLabel.Position = UDim2.new(0.00334448158, 0, 0, 0)
+TextLabel.Size = UDim2.new(0, -298, 0, 50)
+TextLabel.Font = Enum.Font.SourceSans
+TextLabel.Text = "Fly = F"
+TextLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel.TextScaled = true
+TextLabel.TextSize = 14.000
+TextLabel.TextWrapped = true
+
+TextLabel_2.Parent = ScrollingFrame
+TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_2.BackgroundTransparency = 1.000
+TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_2.BorderSizePixel = 0
+TextLabel_2.Position = UDim2.new(0.00334448158, 0, 0.118883684, 0)
+TextLabel_2.Size = UDim2.new(0, -298, 0, 50)
+TextLabel_2.Font = Enum.Font.SourceSans
+TextLabel_2.Text = "Noclip = G"
+TextLabel_2.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_2.TextScaled = true
+TextLabel_2.TextSize = 14.000
+TextLabel_2.TextWrapped = true
+
+TextLabel_3.Parent = ScrollingFrame
+TextLabel_3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_3.BackgroundTransparency = 1.000
+TextLabel_3.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_3.BorderSizePixel = 0
+TextLabel_3.Position = UDim2.new(-0, 0, 0.228275418, 0)
+TextLabel_3.Size = UDim2.new(0, -298, 0, 50)
+TextLabel_3.Font = Enum.Font.SourceSans
+TextLabel_3.Text = "Gui Visble = M "
+TextLabel_3.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_3.TextScaled = true
+TextLabel_3.TextSize = 14.000
+TextLabel_3.TextWrapped = true
+
+TextLabel_4.Parent = ScrollingFrame
+TextLabel_4.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_4.BackgroundTransparency = 1.000
+TextLabel_4.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_4.BorderSizePixel = 0
+TextLabel_4.Position = UDim2.new(0.00334448158, 0, 0.328763723, 0)
+TextLabel_4.Size = UDim2.new(0, -298, 0, 50)
+TextLabel_4.Font = Enum.Font.SourceSans
+TextLabel_4.Text = "Read Visble = N"
+TextLabel_4.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_4.TextScaled = true
+TextLabel_4.TextSize = 14.000
+TextLabel_4.TextWrapped = true
+
+TextLabel_5.Parent = MainReal
+TextLabel_5.BackgroundColor3 = Color3.fromRGB(77, 77, 77)
+TextLabel_5.BackgroundTransparency = 0.250
+TextLabel_5.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_5.BorderSizePixel = 5
+TextLabel_5.Position = UDim2.new(0, 0, -0.104265399, 0)
+TextLabel_5.Size = UDim2.new(0, 332, 0, 16)
+TextLabel_5.Font = Enum.Font.SourceSans
+TextLabel_5.Text = "Shift Lock +  fly +  noclip"
+TextLabel_5.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_5.TextScaled = true
+TextLabel_5.TextSize = 14.000
+TextLabel_5.TextWrapped = true
+
+X.Name = "X"
+X.Parent = MainReal
+X.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+X.BackgroundTransparency = 0.250
+X.BorderColor3 = Color3.fromRGB(0, 0, 0)
+X.BorderSizePixel = 0
+X.Position = UDim2.new(0.94894892, 0, -0.236966819, 0)
+X.Size = UDim2.new(0, 51, 0, 50)
+X.Font = Enum.Font.SourceSans
+X.Text = "X"
+X.TextColor3 = Color3.fromRGB(0, 0, 0)
+X.TextScaled = true
+X.TextSize = 34.000
+X.TextWrapped = true
+
+UICorner.CornerRadius = UDim.new(0, 40)
+UICorner.Parent = X
+
+TextLabel_6.Parent = MainReal
+TextLabel_6.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_6.BackgroundTransparency = 1.000
+TextLabel_6.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_6.BorderSizePixel = 5
+TextLabel_6.Position = UDim2.new(0, 0, 1.06161141, 0)
+TextLabel_6.Size = UDim2.new(0, 333, 0, 17)
+TextLabel_6.Font = Enum.Font.SourceSans
+TextLabel_6.Text = "Dead = rejoin "
+TextLabel_6.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_6.TextSize = 40.000
+TextLabel_6.TextWrapped = true
+
+Read.Name = "Read"
+Read.Parent = MainGui
+Read.Active = true
+Read.BackgroundColor3 = Color3.fromRGB(0, 153, 255)
+Read.BackgroundTransparency = 0.500
+Read.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Read.BorderSizePixel = 5
+Read.Position = UDim2.new(0.132439226, 0, 0.116113745, 0)
+Read.Size = UDim2.new(0, 877, 0, 545)
+Read.Visible = false
+
+TextLabel_7.Parent = Read
+TextLabel_7.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_7.BackgroundTransparency = 1.000
+TextLabel_7.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_7.BorderSizePixel = 0
+TextLabel_7.Position = UDim2.new(0.682933986, 0, 0.136134043, 0)
+TextLabel_7.Size = UDim2.new(0, -884, 0, 137)
+TextLabel_7.Font = Enum.Font.SourceSans
+TextLabel_7.Text = "Press \"D\" "
+TextLabel_7.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_7.TextScaled = true
+TextLabel_7.TextSize = 14.000
+TextLabel_7.TextWrapped = true
+
+TextLabel_8.Parent = Read
+TextLabel_8.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_8.BackgroundTransparency = 1.000
+TextLabel_8.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_8.BorderSizePixel = 0
+TextLabel_8.Position = UDim2.new(0.806157351, 0, -0.0760256127, 0)
+TextLabel_8.Size = UDim2.new(0, -877, 0, 135)
+TextLabel_8.Font = Enum.Font.SourceSans
+TextLabel_8.Text = "Press \"w  -->   S\" "
+TextLabel_8.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_8.TextScaled = true
+TextLabel_8.TextSize = 14.000
+TextLabel_8.TextWrapped = true
+
+TextLabel_9.Parent = Read
+TextLabel_9.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_9.BackgroundTransparency = 1.000
+TextLabel_9.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_9.BorderSizePixel = 0
+TextLabel_9.Position = UDim2.new(0.678449273, 0, 0.270811766, 0)
+TextLabel_9.Size = UDim2.new(0, -877, 0, 112)
+TextLabel_9.Font = Enum.Font.SourceSans
+TextLabel_9.Text = "Press \"A \" "
+TextLabel_9.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_9.TextScaled = true
+TextLabel_9.TextSize = 14.000
+TextLabel_9.TextWrapped = true
+
+TextLabel_10.Parent = Read
+TextLabel_10.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_10.BackgroundTransparency = 1.000
+TextLabel_10.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_10.BorderSizePixel = 0
+TextLabel_10.Position = UDim2.new(0.787913322, 0, -0.00180809654, 0)
+TextLabel_10.Size = UDim2.new(0, -877, 0, 167)
+TextLabel_10.Font = Enum.Font.SourceSans
+TextLabel_10.Text = "Press \"S  -->  W\""
+TextLabel_10.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_10.TextScaled = true
+TextLabel_10.TextSize = 14.000
+TextLabel_10.TextWrapped = true
+
+X_2.Name = "X"
+X_2.Parent = Read
+X_2.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+X_2.BackgroundTransparency = 0.250
+X_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+X_2.BorderSizePixel = 0
+X_2.Position = UDim2.new(0.979735792, 0, -0.053480573, 0)
+X_2.Size = UDim2.new(0, 51, 0, 50)
+X_2.Font = Enum.Font.SourceSans
+X_2.Text = "X"
+X_2.TextColor3 = Color3.fromRGB(0, 0, 0)
+X_2.TextScaled = true
+X_2.TextSize = 34.000
+X_2.TextWrapped = true
+
+UICorner_2.CornerRadius = UDim.new(0, 40)
+UICorner_2.Parent = X_2
+
+TextLabel_11.Parent = Read
+TextLabel_11.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_11.BackgroundTransparency = 1.000
+TextLabel_11.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_11.BorderSizePixel = 0
+TextLabel_11.Position = UDim2.new(0.752565563, 0, 0.386408091, 0)
+TextLabel_11.Size = UDim2.new(0, -877, 0, 112)
+TextLabel_11.Font = Enum.Font.SourceSans
+TextLabel_11.Text = "Press \"Jump\" "
+TextLabel_11.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_11.TextScaled = true
+TextLabel_11.TextSize = 14.000
+TextLabel_11.TextWrapped = true
+
+TextLabel_12.Parent = Read
+TextLabel_12.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextLabel_12.BackgroundTransparency = 1.000
+TextLabel_12.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_12.BorderSizePixel = 0
+TextLabel_12.Position = UDim2.new(0.71493727, 0, 0.490995228, 0)
+TextLabel_12.Size = UDim2.new(0, -877, 0, 112)
+TextLabel_12.Font = Enum.Font.SourceSans
+TextLabel_12.Text = "Press \"Ctrl\" "
+TextLabel_12.TextColor3 = Color3.fromRGB(0, 0, 0)
+TextLabel_12.TextScaled = true
+TextLabel_12.TextSize = 14.000
+TextLabel_12.TextWrapped = true
+
+-- Scripts:
+
+local function PAHFGE_fake_script() -- MainReal.Visible 
+	local script = Instance.new('LocalScript', MainReal)
+
+	local Gui = script.Parent
+	
+	local function onKeyPress(input)
+		if input.KeyCode == Enum.KeyCode.M then -- Change M to whatever key you want to press to open the gui.
+			if Gui.Visible == true then
+				Gui.Visible = false
+			else
+				Gui.Visible = true
+			end
+		end
+	end
+	
+	game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
+end
+coroutine.wrap(PAHFGE_fake_script)()
+local function ELSJNVT_fake_script() -- MainReal.LocalScript 
+	local script = Instance.new('LocalScript', MainReal)
+
+	-- Optimized Fly + Noclip Script for Phantom Forces
+	-- Uses CFrame for smoother movement and Noclip for wall bypass
+	-- Toggle Fly: F | Boost: LeftShift | Move: WASD | Up: Space | Down: LeftControl | Toggle Noclip: G
+	
+	local UserInputService = game:GetService("UserInputService")
+	local RunService = game:GetService("RunService")
+	local Players = game:GetService("Players")
+	
+	local LocalPlayer = Players.LocalPlayer
+	local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+	local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+	
+	local Flying = false
+	local Noclip = false
+	local Speed = 50
+	local Direction = Vector3.new()
+	
+	local Keybinds = {
+		[Enum.KeyCode.W] = Vector3.new(0, 0, -1),
+		[Enum.KeyCode.S] = Vector3.new(0, 0, 1),
+		[Enum.KeyCode.A] = Vector3.new(-1, 0, 0),
+		[Enum.KeyCode.D] = Vector3.new(1, 0, 0),
+		[Enum.KeyCode.Space] = Vector3.new(0, 1, 0),
+		[Enum.KeyCode.LeftControl] = Vector3.new(0, -1, 0)
+	}
+	
+	-- Toggles flight and noclip
+	UserInputService.InputBegan:Connect(function(input, gameProcessed)
+		if gameProcessed then return end
+	
+		if input.KeyCode == Enum.KeyCode.F then
+			Flying = not Flying
+		elseif input.KeyCode == Enum.KeyCode.G then
+			Noclip = not Noclip
+		elseif input.KeyCode == Enum.KeyCode.LeftShift then
+			Speed = 100
+		elseif Keybinds[input.KeyCode] then
+			Direction = Direction + Keybinds[input.KeyCode]
+		end
+	end)
+	
+	UserInputService.InputEnded:Connect(function(input)
+		if input.KeyCode == Enum.KeyCode.LeftShift then
+			Speed = 50
+		elseif Keybinds[input.KeyCode] then
+			Direction = Direction - Keybinds[input.KeyCode]
+		end
+	end)
+	
+	-- Fly & Noclip Loop
+	RunService.RenderStepped:Connect(function()
+		if Flying then
+			HumanoidRootPart.Velocity = Vector3.zero -- Stops default gravity effects
+			HumanoidRootPart.CFrame = HumanoidRootPart.CFrame + (HumanoidRootPart.CFrame.LookVector * Direction.Z + HumanoidRootPart.CFrame.RightVector * Direction.X + Vector3.new(0, Direction.Y, 0)) * Speed * 0.02
+		end
+	
+		if Noclip then
+			for _, part in pairs(Character:GetDescendants()) do
+				if part:IsA("BasePart") then
+					part.CanCollide = false -- Disables collisions
+				end
+			end
+		end
+	end)
+	
+end
+coroutine.wrap(ELSJNVT_fake_script)()
+local function FRUCNE_fake_script() -- X.LocalScript 
+	local script = Instance.new('LocalScript', X)
+
+	local frame = script.Parent.Parent
+	
+	script.Parent.MouseButton1Click:Connect(function()
+		frame.Visible = false
+	end)
+end
+coroutine.wrap(FRUCNE_fake_script)()
+local function ACFX_fake_script() -- MainReal.Smooth GUI Dragging 
+	local script = Instance.new('LocalScript', MainReal)
+
+	local UserInputService = game:GetService("UserInputService")
+	local runService = (game:GetService("RunService"));
+	
+	local gui = script.Parent
+	
+	local dragging
+	local dragInput
+	local dragStart
+	local startPos
+	
+	function Lerp(a, b, m)
+		return a + (b - a) * m
+	end;
+	
+	local lastMousePos
+	local lastGoalPos
+	local DRAG_SPEED = (8); -- // The speed of the UI darg.
+	function Update(dt)
+		if not (startPos) then return end;
+		if not (dragging) and (lastGoalPos) then
+			gui.Position = UDim2.new(startPos.X.Scale, Lerp(gui.Position.X.Offset, lastGoalPos.X.Offset, dt * DRAG_SPEED), startPos.Y.Scale, Lerp(gui.Position.Y.Offset, lastGoalPos.Y.Offset, dt * DRAG_SPEED))
+			return 
+		end;
+	
+		local delta = (lastMousePos - UserInputService:GetMouseLocation())
+		local xGoal = (startPos.X.Offset - delta.X);
+		local yGoal = (startPos.Y.Offset - delta.Y);
+		lastGoalPos = UDim2.new(startPos.X.Scale, xGoal, startPos.Y.Scale, yGoal)
+		gui.Position = UDim2.new(startPos.X.Scale, Lerp(gui.Position.X.Offset, xGoal, dt * DRAG_SPEED), startPos.Y.Scale, Lerp(gui.Position.Y.Offset, yGoal, dt * DRAG_SPEED))
+	end;
+	
+	gui.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			dragStart = input.Position
+			startPos = gui.Position
+			lastMousePos = UserInputService:GetMouseLocation()
+	
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragging = false
+				end
+			end)
+		end
+	end)
+	
+	gui.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+	
+	runService.Heartbeat:Connect(Update)
+end
+coroutine.wrap(ACFX_fake_script)()
+local function ALJHOTF_fake_script() -- Read.Visible 
+	local script = Instance.new('LocalScript', Read)
+
+	local Gui = script.Parent
+	
+	local function onKeyPress(input)
+		if input.KeyCode == Enum.KeyCode.N then -- Change N to whatever key you want to press to open the gui.
+			if Gui.Visible == true then
+				Gui.Visible = false
+			else
+				Gui.Visible = true
+			end
+		end
+	end
+	
+	game:GetService("UserInputService").InputBegan:Connect(onKeyPress)
+end
+coroutine.wrap(ALJHOTF_fake_script)()
+local function LLBFXJ_fake_script() -- X_2.LocalScript 
+	local script = Instance.new('LocalScript', X_2)
+
+	local frame = script.Parent.Parent
+	
+	script.Parent.MouseButton1Click:Connect(function()
+		frame.Visible = false
+	end)
+end
+coroutine.wrap(LLBFXJ_fake_script)()
