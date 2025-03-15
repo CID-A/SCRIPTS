@@ -67,7 +67,7 @@ AddButton(Main, {
   Name = "GET SPEED",
     Description = "GET SPEED", 
   Callback = function()
-    getgenv().playerSpeed = 35
+    getgenv().playerSpeed = 37
 
 local mt = getrawmetatable(game)
 local old = mt.__newindex 
@@ -726,12 +726,6 @@ AddToggle(Main, {
        end
 })
 
-AddButton(Main, {
-  Name = "AUTO GK ⚽️",
-  Callback = function()
-   loadstring(game:HttpGet("https://gist.githubusercontent.com/Yopapa7/6a8ea468a42314b66b75b22e82100624/raw/bafe015781cd58e94d353b9df84995f8dd481acc/gistfile1.txt",true))()
-  end
-})
 
 AddButton(Main, {
   Name = "GK Ball Expander⚽️",
