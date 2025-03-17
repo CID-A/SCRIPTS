@@ -12,7 +12,7 @@ gui.Parent = player:WaitForChild("PlayerGui")
 -- Function to create buttons
 local function createButton(name, position, text)
     local button = Instance.new("TextButton")
-    button.Size = UDim2.new(0, 110, 0, 40)
+    button.Size = UDim2.new(0, 40, 0, 40)
     button.Position = position
     button.Text = text
     button.Parent = gui
