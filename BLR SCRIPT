@@ -1,0 +1,772 @@
+local players = game:GetService("Players") -- Corrected the order of declaration
+local player = players.LocalPlayer -- Moved this line after players is defined
+local teams = game:GetService("Teams")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local library = loadstring(game:HttpGet(("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/Gui.lua")))()
+
+MakeWindow({
+  Hub = {
+    Title = "BLUE LOCK | HUB!",
+    Animation = "BEST BLUE LOCK SCRIPT!"
+  },
+  Key = {
+    KeySystem = false,
+    Title = "CID | KEY",
+    Description = "^CID HB^",
+    KeyLink = "HAHAHAHAHA",
+    Keys = {"CID"},
+    Notifi = {
+      Notifications = true,
+      CorrectKey = "Running the Script...",
+      Incorrectkey = "The key is incorrect",
+      CopyKeyLink = "Copied Discord Link"
+    }
+  }
+})
+
+
+MinimizeButton({
+  Image = "rbxassetid://83845297917428",
+  Size = {40, 40},
+  Color = Color3.fromRGB(10, 10, 10),
+Corner = true,
+Stroke = true,
+StrokeColor = Color3.fromHSV(0.5, 1, 1)  -- Hue: 180  for cyan
+})
+
+MakeNotifi({
+  Title = "BLUE LOCK | HUB",
+  Text = "CID ON TOP",
+  Time = 5
+})
+
+local Main = MakeTab({Name = "MAIN"})
+
+local sectionS = AddSection(Main, {"NO COLDOWN + STUFF"})
+
+AddButton(Main, { 
+    Name = "NO COOLDOWN IN LOBBY/PUBLIC SV ", -- Fixed the button name
+      Description = "NO COOLDOWN ALL ABILITY 🤑", 
+    Callback = function()
+local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
+local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
+end
+})
+
+local sectionS = AddSection(Main, {"SPEED AND INF STAIMNA"})
+
+AddButton(Main, {
+  Name = "BRING BALL BUTTON",
+    Description = "BRING THE BALL TO YOU", 
+  Callback = function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BALL%20BRING"))()
+  end
+})
+
+AddButton(Main, {
+  Name = "GET SPEED",
+    Description = "GET SPEED", 
+  Callback = function()
+    getgenv().playerSpeed = 35
+
+local mt = getrawmetatable(game)
+local old = mt.__newindex 
+setreadonly(mt, false)
+mt.__newindex = function(self, idx, val)
+if idx == 'WalkSpeed' then 
+return old(self, idx, playerSpeed)
+end 
+return old(self, idx, val)
+end 
+setreadonly(mt, true)
+  end
+})
+
+AddButton(Main, {
+  Name = "CURVE SHOT CAMERA",
+    Description = "DO CURVE SHOT WITH MOVING CAMERA", 
+  Callback = function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BLUE%20LOCK%20CURVE%20SHOT%20CAMERA"))()
+  end
+})
+
+
+AddButton(Main, {
+  Name = "INF STAMINA",
+    Description = "JUMP+DRIBLE INF", 
+  Callback = function()
+while task.wait(0) do
+game.Players.LocalPlayer.PlayerStats.Stamina.Value = 100
+end
+  end
+})
+
+AddButton(Main, { 
+  Name = "ALWAYS FLOW ON (Patch :c)", 
+  Description = "DONT SPAM!", 
+  Callback = function()
+    if localPlayer:FindFirstChild("PlayerStats") and localPlayer.PlayerStats:FindFirstChild("InFlow") then
+        localPlayer.PlayerStats.InFlow.Value = true
+        local args = {
+        [1] = "true"
+    }
+    game:GetService("ReplicatedStorage").Packages.Knit.Services.FlowService.RE.AuraEquip:FireServer(unpack(args))
+       end
+    end
+})
+
+local sectionGK = AddSection(Main, {"GK"})
+
+AddButton(Main, {
+  Name = "GK V1 ( MORE LEGIT )",
+  Callback = function()
+      loadstring(game:HttpGet("https://pastebin.com/raw/CfqfA9pw"))()
+  end
+})
+
+AddButton(Main, {
+  Name = "GK V2",
+  Callback = function()
+      loadstring(game:HttpGet("https://pastebin.com/raw/4r9yzMEK"))()
+  end
+})
+
+local Main = MakeTab({Name = "STYLE AND FLOW"})
+
+local sectionStyle = AddSection(Main, {"Styles ( NEED REO TO WORK WITH SKILS"})
+
+local function set_style(desired_style)
+    if player:FindFirstChild("PlayerStats") then
+        local playerStats = player.PlayerStats
+        if playerStats:FindFirstChild("Style") then
+            playerStats.Style.Value = desired_style
+        end
+    end
+end
+
+local function set_flow(desired_flow)
+    if player:FindFirstChild("PlayerStats") then
+        local playerStats = player.PlayerStats
+        if playerStats:FindFirstChild("Flow") then
+            playerStats.Flow.Value = desired_flow
+        end
+    end
+end
+
+local StyleTextBox = AddTextBox(Main, { 
+  Name = "Stye Name", 
+  Default = "", 
+  TextDisappear = false, 
+  PlaceholderText = "PUT NAME", 
+  ClearText = true, 
+  Callback = function(value) 
+
+
+      styleId = value 
+  end 
+}) 
+
+
+AddButton(Main, { 
+  Name = "GET THE STYLE", 
+  Description = "DONT SPAM!", 
+  Callback = function() 
+
+      if styleId and styleId ~= "" then 
+        set_style(styleId)
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = " by CID",
+          Time = 3
+        })
+      
+      else 
+
+        MakeNotifi({
+          Title = "WRONG PLS BE CARFULLY",
+          Text = "By CID",
+          Time = 3
+        })
+      end 
+  end 
+})
+local sectionFlow = AddSection(Main, {"Flows"})
+
+local FlowTextBox = AddTextBox(Main, { 
+  Name = "Flow Name", 
+  Default = "", 
+  TextDisappear = false, 
+  PlaceholderText = "PUT NAME", 
+  ClearText = true, 
+  Callback = function(value) 
+
+
+      flow_name = value 
+  end 
+}) 
+
+
+AddButton(Main, { 
+  Name = "GET THE FLOW", 
+  Description = "DONT SPAM!", 
+  Callback = function() 
+
+      if flow_name and flow_name ~= "" then 
+        set_flow(flow_name)
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "By CID",
+          Time = 3
+        })
+      
+      else 
+
+        MakeNotifi({
+          Title = "WRONG PLS BE CARFULLY",
+          Text = "By CID",
+          Time = 3
+        })
+      end 
+  end 
+})
+
+local sectionFlow2 = AddSection(Main, {"Flows Function"})
+
+local localPlayer = game:GetService("Players").LocalPlayer
+
+AddButton(Main, { 
+  Name = "Prodigy", 
+  Description = "INF CURVE SHOT AND SPEED LEGIT ( PRESS ALWAYS FLOW ON)", 
+  Callback = function()
+      set_flow("Prodigy")
+    end
+  })
+local Main = MakeTab({Name = "ITEMS"})
+
+local section100 = AddSection(Main, {"GOAL EFFECT"})
+local GoalsTextBox = AddTextBox(Main, { 
+  Name = "Goal effect Name", 
+  Default = "", 
+  TextDisappear = false, 
+  PlaceholderText = "PUT NAME", 
+  ClearText = true, 
+  Callback = function(value) 
+
+
+      goal_name = value 
+  end 
+}) 
+
+
+AddButton(Main, { 
+  Name = "GET THE EFFECT", 
+  Description = "DONT SPAM!", 
+  Callback = function()
+      if goal_name and goal_name ~= "" then
+            local args = {
+                [1] = "GoalEffects",
+                [2] = goal_name
+            }
+            game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "By CID",
+          Time = 3
+        })
+      
+      else 
+
+        MakeNotifi({
+          Title = "WRONG PLS BE CARFULLY",
+          Text = "By CID",
+          Time = 3
+        })
+      end 
+  end 
+})
+
+
+local section15 = AddSection(Main, {"CARDS"})
+local CardsTextBox = AddTextBox(Main, { 
+  Name = "Card Name", 
+  Default = "", 
+  TextDisappear = false, 
+  PlaceholderText = "PUT NAME", 
+  ClearText = true, 
+  Callback = function(value) 
+
+
+      card_name = value 
+  end 
+}) 
+
+
+AddButton(Main, { 
+  Name = "GET THE CARD", 
+  Description = "DONT SPAM!", 
+  Callback = function()
+      if card_name and card_name ~= "" then
+            local args = {
+                [1] = "Cards",
+                [2] = card_name
+            }
+            game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "By CID",
+          Time = 3
+        })
+      
+      else 
+
+        MakeNotifi({
+          Title = "WRONG PLS BE CARFULLY",
+          Text = "By CID",
+          Time = 3
+        })
+      end 
+  end 
+})
+
+local section12 = AddSection(Main, {"COSMETICS"})
+local CardsTextBox = AddTextBox(Main, { 
+  Name = "Cosmetics Name", 
+  Default = "", 
+  TextDisappear = false, 
+  PlaceholderText = "PUT NAME", 
+  ClearText = true, 
+  Callback = function(value) 
+
+
+      cos_name = value 
+  end 
+}) 
+
+
+AddButton(Main, { 
+  Name = "GET THE Coametic", 
+  Description = "DONT SPAM!", 
+  Callback = function()
+      if cos_name and cos_name ~= "" then
+            local args = {
+                [1] = "Cosmetics",
+                [2] = cos_name
+            }
+            game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "By CID",
+          Time = 3
+        })
+      
+      else 
+
+        MakeNotifi({
+          Title = "WRONG PLS BE CARFULLY",
+          Text = "By CID",
+          Time = 3
+        })
+      end 
+  end 
+})
+
+
+local section176 = AddSection(Main, {"Goal effects one tap"})
+AddButton(Main, { 
+    Name = "get Wonderland effect", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "GoalEffects",
+    [2] = "Wonderland"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+
+AddButton(Main, { 
+    Name = "get Conquer effect", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "GoalEffects",
+    [2] = "Conquer"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+
+AddButton(Main, { 
+    Name = "get Time Stop effect", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "GoalEffects",
+    [2] = "Time Stop"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))       
+        end          
+    })
+
+
+AddButton(Main, { 
+    Name = "get Presents Effect", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "GoalEffects",
+    [2] = "Presents"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+--
+local section178 = AddSection(Main, {"Cards One tap"})
+AddButton(Main, { 
+    Name = "get VIP card", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cards",
+    [2] = "VIP"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+AddButton(Main, { 
+    Name = "get Legend card", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cards",
+    [2] = "Legend"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+
+AddButton(Main, { 
+    Name = "get Crystal card ( best )", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cards",
+    [2] = "Crystal"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+
+AddButton(Main, { 
+    Name = "get Admin card", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cards",
+    [2] = "YingYang"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+local section179 = AddSection(Main, {"Cosmetics One tap"})
+
+AddButton(Main, { 
+    Name = "Get Cosmic Aura ( THE BEST )", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "COSMIC"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+AddButton(Main, { 
+    Name = "Get SHIDOU WINGS ", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Shidou Wings"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+AddButton(Main, { 
+    Name = "Get admin SHADOW Aura", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "SHADOW"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+AddButton(Main, { 
+    Name = "get Snowman Cape", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Snowman Cape"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+AddButton(Main, { 
+    Name = "get Peppermint Cape ( best normal )", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Peppermint Cape"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+AddButton(Main, { 
+    Name = "get Christmas Aura", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Christmas Aura"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+AddButton(Main, { 
+    Name = "Get Valentine Aura", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Valentines"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Angel Wings", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Angel Wings"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Glitch Aura", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "GLITCH"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+AddButton(Main, { 
+    Name = "get DRAGON CAPE", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Dragon Cape"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Santa Hat", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Santa Hat"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Lanterns", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Lanterns!"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get NINJA", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Ninja"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Dribbler's  ", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Dribbler's Glasses"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Shadow Cape", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Shadow Cape"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Fireworks", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Fireworks"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+    
+    AddButton(Main, { 
+    Name = "get Santa Scarf", -- Fixed the button name
+    Callback = function()
+    local args = {
+    [1] = "Cosmetics",
+    [2] = "Santa Scarf"
+}
+
+game:GetService("ReplicatedStorage").Packages.Knit.Services.CustomizationService.RE.Customize:FireServer(unpack(args))
+        end          
+    })
+
+local Main = MakeTab({Name = "OTHERS"})
+
+local sectionFarms = AddSection(Main, {"GET BALL"})
+
+local function trackFootball()
+    local character = player.Character or player.CharacterAdded:Wait()
+
+    while isAutoBallEnabled do
+        local football = workspace:FindFirstChild("Football")
+        if football then
+            if not character:FindFirstChild("Football") then
+                character:SetPrimaryPartCFrame(football.CFrame) -- Teleport to the football
+            end
+        else
+            print("Football is not in workspace anymore")
+        end
+        wait() -- Wait for 0.1 seconds before checking again
+    end
+end
+
+local Toggle2 = AddToggle(Main, {
+    Name = "Auto Teleport to Football",
+    Default = false,
+    Callback = function(value)
+        isAutoBallEnabled = value
+        if isAutoBallEnabled then
+            trackFootball() -- Start tracking the football
+        end
+    end
+})
+
+AddToggle(Main, {
+   Name = "ANTI RAGDOLL",
+   Callback = function(Value)
+           antiRagdoll = Value
+        if Value then
+            task.spawn(function()
+                while antiRagdoll do
+                    if player.Character and player.Character:FindFirstChild("Ragdolled") then
+                        player.Character.Ragdolled:Destroy()
+                    end
+                    task.wait()
+                end
+            end)
+        end
+       end
+})
+
+AddButton(Main, {
+  Name = "AUTO GK ⚽️",
+  Callback = function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/AUTO%20GK"))()
+  end
+})
+
+AddButton(Main, {
+  Name = "GK Ball Expander⚽️",
+  Callback = function()
+   loadstring(game:HttpGet("https://pastebin.com/raw/T5m4nwPq"))()
+  end
+})
+
+AddButton(Main, {
+  Name = "⬆️ Infinite Jump",
+  Callback = function()
+    local InfiniteJumpEnabled = true
+    game:GetService("UserInputService").JumpRequest:connect(function()
+      if InfiniteJumpEnabled then
+        game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+      end
+    end)
+  end
+})
+
+
+AddTextBox(Main, {
+  Name = "",
+  Callback = function(S)
+    getgenv().playerSpeed = S
+
+local mt = getrawmetatable(game)
+local old = mt.__newindex 
+setreadonly(mt, false)
+mt.__newindex = function(self, idx, val)
+if idx == 'WalkSpeed' then 
+return old(self, idx, playerSpeed)
+end 
+return old(self, idx, val)
+end 
+setreadonly(mt, true)
+  end
+})

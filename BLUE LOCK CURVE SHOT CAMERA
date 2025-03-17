@@ -1,0 +1,211 @@
+local a1 = game:GetService("TweenService")
+local a2 = game:GetService("Players")
+local a3 = game:GetService("ReplicatedStorage")
+
+local a4 = a2.LocalPlayer
+local a5 = a4.Character or a4.CharacterAdded:Wait()
+
+local a6 = Instance.new("ScreenGui")
+local a7 = Instance.new("Frame")
+local a8 = Instance.new("ImageButton")
+local a9 = Instance.new("ImageLabel")
+
+a6.Name = "Baka"
+a6.Parent = a4:WaitForChild("PlayerGui")
+a6.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+a6.ResetOnSpawn = false
+
+a7.Name = "Silly"
+a7.Parent = a6
+a7.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+a7.Position = UDim2.new(0.091, 0, 0.57, 0)
+a7.Size = UDim2.new(0, 80, 0, 14)
+a7.Active = true
+a7.Draggable = true
+a7.Transparency = 0.8
+
+a8.Name = "Thing1"
+a8.Parent = a7
+a8.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+a8.Position = UDim2.new(0.243, 0, 0.345, 0)
+a8.Size = UDim2.new(0, 50, 0, 50)
+a8.Image = "rbxassetid://140379822604324"
+a8.BackgroundTransparency = 1
+a8.BorderSizePixel = 0
+
+a9.Name = "Thing2"
+a9.Parent = a8
+a9.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+a9.Size = UDim2.new(0, 50, 0, 35)
+a9.Image = "rbxassetid://77130576028106"
+a9.BackgroundTransparency = 1
+a9.BorderSizePixel = 0
+a9.AnchorPoint = Vector2.new(0.5, 0.5)
+a9.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+local a10 = false
+
+local function a11(b1)
+    local b2 = TweenInfo.new(0.13, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+    local b3 = {Size = UDim2.new(0, 54, 0, 54)}
+    local b4 = a1:Create(b1, b2, b3)
+
+    b4:Play()
+
+    b4.Completed:Connect(function()
+        local b5 = {Size = UDim2.new(0, 50, 0, 50)}
+        local b6 = a1:Create(b1, b2, b5)
+        b6:Play()
+    end)
+end
+
+local function a12()
+    if not a5 then return false end
+
+    for _, b7 in ipairs(a5:GetChildren()) do
+        if b7:IsA("BasePart") or b7:IsA("Model") then
+            if b7.Name == "Football" then
+                return true
+            end
+        end
+    end
+    return false
+end
+
+a8.MouseButton1Down:Connect(function()
+    a11(a8)
+
+    if a10 then
+        warn("Cooldown active. Wait a second, bro.")
+        return
+    end
+
+    if not a12() then
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "Missing object!";
+            Text = "needed ball to do curve";
+            Duration = 0.7;
+        })
+        return
+    end
+
+    a10 = true
+    a11(a8)
+
+    local b8 = a5:FindFirstChild("HumanoidRootPart")
+
+    local b9 = workspace:FindFirstChild("Football")
+    local b10 = b9 and b9:FindFirstChild("Hitbox")
+
+    if b10 then
+        warn("Hitbox already exists. Playing animation only.")
+
+        local b11 = "18668827116"
+        local b12 = a5:WaitForChild("Humanoid")
+        local b13 = Instance.new("Animation")
+        b13.AnimationId = "rbxassetid://" .. b11
+        local b14 = b12:FindFirstChildOfClass("Animator") or Instance.new("Animator", b12)
+        local b15 = b14:LoadAnimation(b13)
+
+        for _, b16 in pairs(b14:GetPlayingAnimationTracks()) do
+            if b16.Animation.AnimationId == b13.AnimationId then
+                b16:Stop()
+            end
+        end
+
+        b15.Priority = Enum.AnimationPriority.Action4
+        b15:Play()
+
+        task.wait(b15.Length)
+        a10 = false
+        return
+    end
+
+    local b11 = "18668827116"
+    local b12 = a5:WaitForChild("Humanoid")
+    local b13 = Instance.new("Animation")
+    b13.AnimationId = "rbxassetid://" .. b11
+    local b14 = b12:FindFirstChildOfClass("Animator") or Instance.new("Animator", b12)
+    local b15 = b14:LoadAnimation(b13)
+
+    for _, b16 in pairs(b14:GetPlayingAnimationTracks()) do
+        if b16.Animation.AnimationId == b13.AnimationId then
+            b16:Stop()
+        end
+    end
+
+    b15.Priority = Enum.AnimationPriority.Action4
+    b15:Play()
+
+    task.wait(0.15)
+
+    local b17 = {
+        [1] = 150,
+    }
+
+    local b18 = a3:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("BallService")
+    if b18 then
+        b18.RE.Shoot:FireServer(unpack(b17))
+    else
+        warn("Service not found!")
+        a10 = false
+        return
+    end
+
+    task.wait(0.277)
+
+    b9 = workspace:FindFirstChild("Football")
+    b10 = b9 and b9:FindFirstChild("Hitbox")
+
+    if not b10 then
+        warn("No Hitbox found. Aborting.")
+        a10 = false
+        return
+    end
+
+    local b19 = 100
+    local b20 = Vector3.new(1000, 0, 1000)
+
+    local b21 = Instance.new("BodyVelocity")
+    b21.MaxForce = b20
+    b21.Parent = b10
+
+    local b22 = 0.5
+    local b23 = false
+
+    task.spawn(function()
+        while not b23 do
+            task.wait(b22)
+            if not b10 or not b10.Parent or not b10:IsDescendantOf(workspace) then
+                warn("Hitbox hidden or deleted! Stopping velocity.")
+                b21:Destroy()
+                b23 = true
+            end
+        end
+    end)
+
+    local b24 = tick()
+    local b25 = 0
+    local b26 = 0.0777
+    local b27 = 0
+
+    local b28
+    b28 = game:GetService("RunService").Heartbeat:Connect(function()
+        if tick() - b24 > b22 then
+            b23 = true
+            b21:Destroy()
+            b28:Disconnect()
+            return
+        end
+
+        local b29 = b8.CFrame.LookVector
+        b27 = math.min(b27 + b26, b25)
+        local b30 = b29 * b27
+
+        b21.Velocity = (b29 * b19) + b30
+    end)
+
+    task.delay(0.7, function()
+        a10 = false
+    end)
+end)
