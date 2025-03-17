@@ -1,0 +1,74 @@
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local rootPart = character:WaitForChild("HumanoidRootPart")
+local humanoid = character:FindFirstChildOfClass("Humanoid")
+local ball = game.Workspace:FindFirstChild("Football")
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+-- Function to create buttons
+local function createButton(name, position, text)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(0, 150, 0, 50)
+    button.Position = position
+    button.Text = text
+    button.Parent = gui
+    button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.BorderSizePixel = 2
+    button.Font = Enum.Font.SourceSansBold
+    button.TextScaled = true
+    return button
+end
+
+-- Create GUI Buttons
+local attractBallButton = createButton("AttractBall", UDim2.new(0, 10, 0.5, -25), "Attract Ball: OFF")
+
+local attractBall = false
+
+-- Function to move the ball towards the player
+local function moveBallToPlayer()
+    while attractBall do
+        ball = game.Workspace:FindFirstChild("Football")
+        if ball then
+            local playerPosition = rootPart.Position
+            local ballPosition = ball.Position
+            local distance = (playerPosition - ballPosition).Magnitude
+
+            -- Stop movement once the ball reaches the player
+            if distance < 3 then
+                attractBall = false
+                attractBallButton.Text = "Attract Ball: OFF"
+                ball.AssemblyLinearVelocity = Vector3.zero
+                ball.AssemblyAngularVelocity = Vector3.zero
+                return
+            end
+
+            -- Strong pull towards player
+            local direction = (playerPosition - ballPosition).Unit
+            ball.AssemblyLinearVelocity = direction * 350  
+
+            -- Opponent avoidance
+            for _, opponent in ipairs(game.Players:GetPlayers()) do
+                if opponent.Team ~= player.Team and opponent.Character and opponent.Character:FindFirstChild("HumanoidRootPart") then
+                    local opponentPos = opponent.Character.HumanoidRootPart.Position
+                    if (ballPosition - opponentPos).Magnitude < 15 then
+                        local avoidance = (ballPosition - opponentPos).Unit * 200
+                        ball.AssemblyLinearVelocity = ball.AssemblyLinearVelocity + avoidance
+                    end
+                end
+            end
+        end
+        task.wait(0.01)
+    end
+end
+
+-- Button Toggles
+attractBallButton.MouseButton1Click:Connect(function()
+    attractBall = not attractBall
+    attractBallButton.Text = attractBall and "Attract Ball: ON" or "Attract Ball: OFF"
+    if attractBall then task.spawn(moveBallToPlayer) end
+end)
