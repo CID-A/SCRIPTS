@@ -50,6 +50,12 @@ AddButton(Main, {
     Callback = function()
 local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
 local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "NO COOLDOWN Completed✅",
+          Time = 3
+        })
 end
 })
 
@@ -60,6 +66,12 @@ AddButton(Main, {
     Description = "BRING THE BALL TO YOU", 
   Callback = function()
    loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BALL%20BRING"))()
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "BRING BALL Completed✅",
+          Time = 3
+        })
   end
 })
 
@@ -79,6 +91,12 @@ end
 return old(self, idx, val)
 end 
 setreadonly(mt, true)
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "SPEED Completed✅",
+          Time = 3
+        })
   end
 })
 
@@ -87,6 +105,12 @@ AddButton(Main, {
     Description = "DO CURVE SHOT WITH MOVING CAMERA", 
   Callback = function()
    loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BLUE%20LOCK%20CURVE%20SHOT%20CAMERA"))()
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "CURVE SHOT Completed✅",
+          Time = 3
+        })
   end
 })
 
@@ -98,6 +122,12 @@ AddButton(Main, {
 while task.wait(0) do
 game.Players.LocalPlayer.PlayerStats.Stamina.Value = 100
 end
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "INF STAMINA Completed✅",
+          Time = 3
+        })
   end
 })
 
@@ -723,6 +753,12 @@ AddToggle(Main, {
                 end
             end)
         end
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "ANTI RAGDOLL Completed✅",
+          Time = 3
+        })
        end
 })
 
@@ -730,6 +766,12 @@ AddButton(Main, {
   Name = "GK Ball Expander⚽️",
   Callback = function()
    loadstring(game:HttpGet("https://pastebin.com/raw/T5m4nwPq"))()
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "BALL EXPANDER Completed✅",
+          Time = 3
+        })
   end
 })
 
@@ -742,6 +784,12 @@ AddButton(Main, {
         game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
       end
     end)
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "INF JUMP Completed✅",
+          Time = 3
+        })
   end
 })
 
@@ -761,5 +809,11 @@ end
 return old(self, idx, val)
 end 
 setreadonly(mt, true)
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "MANUAL SPEED Completed✅",
+          Time = 3
+        })
   end
 })
