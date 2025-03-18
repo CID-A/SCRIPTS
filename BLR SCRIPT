@@ -793,6 +793,19 @@ AddButton(Main, {
   end
 })
 
+AddButton(Main, {
+  Name = "CONTROL BALL⚽️",
+  Callback = function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/CONTROL.txt"))()
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "CONTROL BALL Completed✅",
+          Time = 3
+        })
+  end
+})
+
 
 AddTextBox(Main, {
   Name = " ",
