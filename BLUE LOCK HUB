@@ -63,7 +63,7 @@ local function CreateToggle()
     mainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     mainFrame.BorderSizePixel = 0
     mainFrame.Position = UDim2.fromScale(0.925, 0.116)
-    mainFrame.Size = UDim2.fromScale(0.083, 0.148)
+    mainFrame.Size = UDim2.fromScale(0, 60, 0, 60)
 
     local uICorner = Instance.new("UICorner")
     uICorner.Name = "UICorner"
@@ -72,7 +72,7 @@ local function CreateToggle()
 
     local toggleButton = Instance.new("ImageButton")
     toggleButton.Name = "ToggleButton"
-    toggleButton.Image = "rbxassetid://112196145837803"
+    toggleButton.Image = "rbxassetid://122357924324708"
     toggleButton.ImageTransparency = 0.3
     toggleButton.AnchorPoint = Vector2.new(0.5, 0.5)
     toggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -168,8 +168,8 @@ local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/U
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/UnlessDahell/FeariseHub/refs/heads/main/InterfaceManager.lua"))()
 
 local Window = Fluent:CreateWindow({
-    Title = "Fearise Hub" .. " | ".."BlueLock : Rival".." | ".."[Version 3]",
-    SubTitle = "by Rowlet/Blobby",
+    Title = "BlueLock : Rival",
+    SubTitle = "by YIGITIXPRO",
     TabWidth = 160,
     Size =  Device, --UDim2.fromOffset(480, 360), --default size (580, 460)
     Acrylic = false, -- การเบลออาจตรวจจับได้ การตั้งค่านี้เป็น false จะปิดการเบลอทั้งหมด
@@ -195,7 +195,7 @@ do
     local WalkSpeedToggle = Tabs.pageLegit:AddToggle("WalkSpeedToggle", {Title = "Toggle WalkSpeed", Default = getgenv().Settings.WalkSpeedToggle or false })
     local WalkSpeedInput = Tabs.pageLegit:AddInput("WalkSpeedInput", {
         Title = "WalkSpeed Input",
-        Default = getgenv().Settings.WalkSpeedInput or 16,
+        Default = getgenv().Settings.WalkSpeedInput or 35,
         Numeric = true,
         Finished = false,
         Callback = function(Value)
