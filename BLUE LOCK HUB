@@ -20,6 +20,7 @@ getgenv().Settings = {
     AutoFarmTweenToggle = nil,
     AutoFarmTeleportToggle = nil,
     InfiniteStamina = false,
+    NOCD = false,
     WhiteScreen = nil,
     AutoGoalKeeper = nil,
     AutoGKKeybind = "",
@@ -294,7 +295,7 @@ do
             end
         end
     end)
-local InfiniteStaminaButton Tabs.pageLegit:AddButton({
+local NOCDButton Tabs.pageLegit:AddButton({
         Title = "NO COOLDOWN",
         Description = "NO COLDOWN SCRIPT OP(cannot be disabled)",
         Callback = function()
