@@ -20,7 +20,6 @@ getgenv().Settings = {
     AutoFarmTweenToggle = nil,
     AutoFarmTeleportToggle = nil,
     InfiniteStamina = false,
-    NOCD = false,
     WhiteScreen = nil,
     AutoGoalKeeper = nil,
     AutoGKKeybind = "",
@@ -295,19 +294,6 @@ do
             end
         end
     end)
-local NOCDButton Tabs.pageLegit:AddButton({
-        Title = "NO COOLDOWN",
-        Description = "NO COLDOWN SCRIPT OP(cannot be disabled)",
-        Callback = function()
-local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
-local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
-                SaveSetting()
-                Fluent:Notify({
-                    Title = "NO COOLDOWN",
-                    Content = "Enabled",
-                    Duration = 3
-                })
-end)
     local EnchantedTitle = Tabs.pageLegit:AddSection("Enchanted")
     local InstantKickKeybind = Tabs.pageLegit:AddKeybind("InstantKickKeybind", {
         Title = "Shoot Keybind",
