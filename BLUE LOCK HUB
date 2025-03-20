@@ -63,7 +63,7 @@ local function CreateToggle()
     mainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
     mainFrame.BorderSizePixel = 0
     mainFrame.Position = UDim2.fromScale(0.925, 0.116)
-    mainFrame.Size = UDim2.fromScale(0, 60, 0, 60)
+    mainFrame.Size = UDim2.fromScale(0.083, 0.128)
 
     local uICorner = Instance.new("UICorner")
     uICorner.Name = "UICorner"
@@ -294,6 +294,19 @@ do
             end
         end
     end)
+local InfiniteStaminaButton Tabs.pageLegit:AddButton({
+        Title = "NO COOLDOWN",
+        Description = "NO COLDOWN SCRIPT OP(cannot be disabled)",
+        Callback = function()
+local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
+local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
+                SaveSetting()
+                Fluent:Notify({
+                    Title = "NO COOLDOWN",
+                    Content = "Enabled",
+                    Duration = 3
+                })
+end)
     local EnchantedTitle = Tabs.pageLegit:AddSection("Enchanted")
     local InstantKickKeybind = Tabs.pageLegit:AddKeybind("InstantKickKeybind", {
         Title = "Shoot Keybind",
