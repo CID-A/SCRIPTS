@@ -422,7 +422,14 @@ do
     local NoCooldownStealToggle = Tabs.pageOP:AddToggle("NoCooldownStealToggle", { Title = "No Cooldown - Steal", Default = getgenv().Settings.NoCooldownStealToggle or false })
     local NoCooldownAirDribbleToggle = Tabs.pageOP:AddToggle("NoCooldownAirDribbleToggle", { Title = "No Cooldown - AirDribble", Default = getgenv().Settings.NoCooldownAirDribbleToggle or false })
     local NoCooldownAirDashToggle = Tabs.pageOP:AddToggle("NoCooldownAirDashToggle", { Title = "No Cooldown - AirDash", Default = getgenv().Settings.NoCooldownAirDashToggle or false })
-
+Tab:AddButton({
+    Title = "NO CD",
+    Description = "NO COOLDOWN ABILITYS",
+    Callback = function()
+local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
+local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
+    end
+})
     -------------------------------------------------------[[ RAGE ]]-------------------------------------------------------
     local LagSwitchToggle = Tabs.pageRage:AddToggle("LagSwitchToggle", {Title = "Lag Switch", Default = getgenv().Settings.LagSwitchToggle or false })
 
