@@ -8,19 +8,6 @@ MakeWindow({
   Hub = {
     Title = "BLUE LOCK | HUB!",
     Animation = "BEST BLUE LOCK SCRIPT!"
-  },
-  Key = {
-    KeySystem = false,
-    Title = "CID | KEY",
-    Description = "^CID HB^",
-    KeyLink = "HAHAHAHAHA",
-    Keys = {"CID"},
-    Notifi = {
-      Notifications = true,
-      CorrectKey = "Running the Script...",
-      Incorrectkey = "The key is incorrect",
-      CopyKeyLink = "Copied Discord Link"
-    }
   }
 })
 
