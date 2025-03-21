@@ -7,7 +7,7 @@ local library = loadstring(game:HttpGet(("https://raw.githubusercontent.com/CID-
 MakeWindow({
   Hub = {
     Title = "BLUE LOCK | HUB!",
-    Animation = "BEST BLUE LOCK SCRIPT!"
+    Animation = "〘𓊈☛MADE BY CID☚𓊉〙!"
   },
   Key = {
     KeySystem = false,
