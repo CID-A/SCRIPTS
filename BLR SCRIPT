@@ -6,8 +6,8 @@ local library = loadstring(game:HttpGet(("https://raw.githubusercontent.com/CID-
 
 MakeWindow({
   Hub = {
-    Title = "BLUE LOCK | HUB!",
-    Animation = "〘𓊈☛MADE BY CID☚𓊉〙!"
+    Title = "【BLUE LOCK ┋ HUB】!",
+    Animation = "𓊈☛MADE BY CID☚𓊉!"
   },
   Key = {
     KeySystem = false,
@@ -34,11 +34,6 @@ Stroke = true,
 StrokeColor = Color3.fromHSV(0.5, 1, 1)  -- Hue: 180  for cyan
 })
 
-MakeNotifi({
-  Title = "BLUE LOCK | HUB",
-  Text = "CID ON TOP",
-  Time = 5
-})
 
 local Main = MakeTab({Name = "MAIN"})
 
@@ -79,7 +74,7 @@ AddButton(Main, {
   Name = "GET SPEED",
     Description = "GET SPEED", 
   Callback = function()
-    getgenv().playerSpeed = 37
+    getgenv().playerSpeed = 36
 
 local mt = getrawmetatable(game)
 local old = mt.__newindex 
@@ -737,29 +732,6 @@ local Toggle2 = AddToggle(Main, {
             trackFootball() -- Start tracking the football
         end
     end
-})
-
-AddToggle(Main, {
-   Name = "ANTI RAGDOLL",
-   Callback = function(Value)
-           antiRagdoll = Value
-        if Value then
-            task.spawn(function()
-                while antiRagdoll do
-                    if player.Character and player.Character:FindFirstChild("Ragdolled") then
-                        player.Character.Ragdolled:Destroy()
-                    end
-                    task.wait()
-                end
-            end)
-        end
-
-        MakeNotifi({
-          Title = "SUCCES",
-          Text = "ANTI RAGDOLL Completed✅",
-          Time = 3
-        })
-       end
 })
 
 AddButton(Main, {
