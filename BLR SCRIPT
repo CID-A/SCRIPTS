@@ -211,12 +211,68 @@ AddButton(Main, {
 local sectionS = AddSection(Main, {"STYLES"})
 
 AddButton(Main, { 
-  Name = "GET THE STYLE", 
-  Description = "DONT SPAM!", 
+  Name = "Kurona Style", 
+  Description = " ", 
   Callback = function()
-  set_style(Kurona)
- end
-})
+      set_style("Kurona")
+    end
+  })
+
+AddButton(Main, { 
+  Name = "Don Lorenzo Style", 
+  Description = " ", 
+  Callback = function()
+      set_style("Don Lorenzo")
+    end
+  })
+
+AddButton(Main, { 
+  Name = "Kunigami Style", 
+  Description = " ", 
+  Callback = function()
+      set_style("Kunigami")
+    end
+  })
+  
+  AddButton(Main, { 
+  Name = "Nagi Style", 
+  Description = " ", 
+  Callback = function()
+      set_style("Nagi")
+    end
+  })
+
+AddButton(Main, { 
+  Name = "Shidou Style", 
+  Description = " ", 
+  Callback = function()
+      set_style("Shidou")
+    end
+  })
+  
+  AddButton(Main, { 
+  Name = "Sae Style", 
+  Description = " ", 
+  Callback = function()
+      set_style("Sae")
+    end
+  })
+  
+    AddButton(Main, { 
+  Name = "Karasu Style", 
+  Description = " ", 
+  Callback = function()
+      set_style("Karasu")
+    end
+  })
+  
+    AddButton(Main, { 
+  Name = "Nel Isagi", 
+  Description = " ", 
+  Callback = function()
+      set_style("Nel Isagi")
+    end
+  })
 
 
 local Main = MakeTab({Name = "OTHERS"})
