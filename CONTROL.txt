@@ -14,6 +14,40 @@ local loadedAnimation = animator:LoadAnimation(animation)
 local screenGui = Instance.new("ScreenGui")
 screenGui.Parent = localPlayer:WaitForChild("PlayerGui")
 
+--------------------------
+
+--Style frame
+frame.BorderSizePixel = 2
+frame.BorderColor3 = Color3.new(0, 0, 0)
+
+-- Style innerFrame
+innerFrame.BorderSizePixel = 2
+innerFrame.BorderColor3 = Color3.new(0, 0, 0)
+
+--Style statusFrame
+statusFrame.BorderSizePixel = 2
+statusFrame.BorderColor3 = Color3.new(0, 0, 0)
+statusFrame.ClipsDescendants = true
+local statusFrameCorner = Instance.new("UICorner")
+statusFrameCorner.CornerRadius = UDim.new(0, 8)
+statusFrameCorner.Parent = statusFrame
+
+-- Style speedLabel
+speedLabel.Font = Enum.Font.SourceSansBold
+speedLabel.TextSize = 20
+speedLabel.TextColor3 = Color3.new(1, 1, 1)
+--speedLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
+--speedLabel.BackgroundTransparency = 0
+
+-- Style madeByLabel
+madeByLabel.Font = Enum.Font.SourceSansBold
+madeByLabel.TextSize = 16
+madeByLabel.TextColor3 = Color3.new(1, 1, 1)
+--madeByLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
+--madeByLabel.BackgroundTransparency = 0
+
+-----------------------------------------------------
+
 local controlButton = Instance.new("TextButton")
 controlButton.Size = UDim2.new(0.15, 0, 0.08, 0)
 controlButton.Position = UDim2.new(0.1, 0, 0.8, 997 - (915 + 82))
@@ -30,7 +64,7 @@ frame.Parent = screenGui
 local speedLabel = Instance.new("TextLabel")
 speedLabel.Size = UDim2.new(1, 0, 0.3, 791 - (368 + 423))
 speedLabel.BackgroundTransparency = 3 - 2
-speedLabel.Text = "Speed: 100"
+speedLabel.Text = "Speed: 70"
 speedLabel.TextColor3 = Color3.fromRGB(255, 255, 273 - (10 + 8))
 speedLabel.TextScaled = true
 speedLabel.Parent = frame
@@ -302,33 +336,3 @@ end)
 controlButton.MouseLeave:Connect(function()
     controlButton.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3)
 end)
-
---Style frame
-frame.BorderSizePixel = 2
-frame.BorderColor3 = Color3.new(0, 0, 0)
-
--- Style innerFrame
-innerFrame.BorderSizePixel = 2
-innerFrame.BorderColor3 = Color3.new(0, 0, 0)
-
---Style statusFrame
-statusFrame.BorderSizePixel = 2
-statusFrame.BorderColor3 = Color3.new(0, 0, 0)
-statusFrame.ClipsDescendants = true
-local statusFrameCorner = Instance.new("UICorner")
-statusFrameCorner.CornerRadius = UDim.new(0, 8)
-statusFrameCorner.Parent = statusFrame
-
--- Style speedLabel
-speedLabel.Font = Enum.Font.SourceSansBold
-speedLabel.TextSize = 20
-speedLabel.TextColor3 = Color3.new(1, 1, 1)
---speedLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
---speedLabel.BackgroundTransparency = 0
-
--- Style madeByLabel
-madeByLabel.Font = Enum.Font.SourceSansBold
-madeByLabel.TextSize = 16
-madeByLabel.TextColor3 = Color3.new(1, 1, 1)
---madeByLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
---madeByLabel.BackgroundTransparency = 0
