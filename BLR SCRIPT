@@ -31,7 +31,7 @@ MinimizeButton({
   Color = Color3.fromRGB(10, 10, 10),
 Corner = true,
 Stroke = true,
-StrokeColor = Color3.fromHSV(0.5, 1, 1)  -- Hue: 180  for cyan
+StrokeColor = Color3.fromHSV(1, 8, 0)  -- Hue: 180  for cyan
 })
 
 
@@ -96,6 +96,31 @@ setreadonly(mt, true)
 })
 
 AddButton(Main, {
+  Name = "GET SPEED MAX",
+    Description = "GET SPEED TO MAX", 
+  Callback = function()
+    getgenv().playerSpeed = 55
+
+local mt = getrawmetatable(game)
+local old = mt.__newindex 
+setreadonly(mt, false)
+mt.__newindex = function(self, idx, val)
+if idx == 'WalkSpeed' then 
+return old(self, idx, playerSpeed)
+end 
+return old(self, idx, val)
+end 
+setreadonly(mt, true)
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "SPEED Completed✅",
+          Time = 3
+        })
+  end
+})
+
+AddButton(Main, {
   Name = "CURVE SHOT CAMERA",
     Description = "DO CURVE SHOT WITH MOVING CAMERA", 
   Callback = function()
@@ -127,14 +152,14 @@ end
 })
 
 AddButton(Main, { 
-  Name = "STYLES SELECTOR (need REO)", 
+  Name = "AUTO DRIBLE", 
   Description = "DONT SPAM!", 
   Callback = function()
-loadstring(game:HttpsGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/STYLES_BUTTON"))()
+loadstring(game:HttpsGet("https://pastefy.app/VBchfAFE/raw"))()
 
         MakeNotifi({
           Title = "SUCCES",
-          Text = "Styles Completed✅",
+          Text = "Auto Drible Completed✅",
           Time = 3
         })
     end
@@ -348,6 +373,20 @@ AddButton(Main, {
           Time = 3
         })
   end
+})
+
+AddButton(Main, { 
+  Name = "STYLES SELECTOR (need REO)", 
+  Description = "DONT SPAM!", 
+  Callback = function()
+loadstring(game:HttpsGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/STYLES_BUTTON"))()
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "Styles Completed✅",
+          Time = 3
+        })
+    end
 })
 
 
