@@ -393,15 +393,7 @@ loadstring(game:HttpsGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/h
 AddTextBox(Main, {
   Name = " ",
   Callback = function(S)
-local player = game.Players.LocalPlayer
-local humanoid = player.Character.Humanoid
-
-humanoid.WalkSpeed = S
-
--- Create a loop to continuously set the walk speed
-while true do
-    humanoid.WalkSpeed = S
-    wait()
+game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = S
 end
 
 
