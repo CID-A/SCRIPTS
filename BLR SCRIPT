@@ -394,7 +394,6 @@ AddTextBox(Main, {
   Name = " ",
   Callback = function(S)
 game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = S
-end
 
 
         MakeNotifi({
