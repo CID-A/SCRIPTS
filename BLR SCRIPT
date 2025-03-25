@@ -31,7 +31,7 @@ MinimizeButton({
   Color = Color3.fromRGB(10, 10, 10),
 Corner = true,
 Stroke = true,
-StrokeColor = Color3.fromHSV(1, 8, 0)  -- Hue: 180  for cyan
+StrokeColor = Color3.fromHSV(0.5, 1, 1)  -- Hue: 180  for cyan
 })
 
 
