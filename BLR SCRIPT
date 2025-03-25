@@ -393,18 +393,17 @@ loadstring(game:HttpsGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/h
 AddTextBox(Main, {
   Name = " ",
   Callback = function(S)
-    getgenv().playerSpeed = S
+local player = game.Players.LocalPlayer
+local humanoid = player.Character.Humanoid
 
-local mt = getrawmetatable(game)
-local old = mt.__newindex 
-setreadonly(mt, false)
-mt.__newindex = function(self, idx, val)
-if idx == 'WalkSpeed' then 
-return old(self, idx, playerSpeed)
-end 
-return old(self, idx, val)
-end 
-setreadonly(mt, true)
+humanoid.WalkSpeed = S
+
+-- Create a loop to continuously set the walk speed
+while true do
+    humanoid.WalkSpeed = S
+    wait()
+end
+
 
         MakeNotifi({
           Title = "SUCCES",
