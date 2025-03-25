@@ -284,10 +284,10 @@ AddButton(Main, {
   })
   
     AddButton(Main, { 
-  Name = "Karasu Style", 
+  Name = "AIKU Style", 
   Description = " ", 
   Callback = function()
-      set_style("Karasu")
+      set_style("Aiku")
     end
   })
   
@@ -295,7 +295,7 @@ AddButton(Main, {
   Name = "Nel Isagi", 
   Description = " ", 
   Callback = function()
-      set_style("Nel Isagi")
+      set_style("NEL Isagi")
     end
   })
 
