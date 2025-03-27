@@ -151,20 +151,6 @@ end
   end
 })
 
-AddButton(Main, { 
-  Name = "AUTO DRIBLE", 
-  Description = "DONT SPAM!", 
-  Callback = function()
-loadstring(game:HttpsGet("https://pastefy.app/VBchfAFE/raw"))()
-
-        MakeNotifi({
-          Title = "SUCCES",
-          Text = "Auto Drible Completed✅",
-          Time = 3
-        })
-    end
-})
-
 local sectionGK = AddSection(Main, {"GK"})
 
 AddButton(Main, {
