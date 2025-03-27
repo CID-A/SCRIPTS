@@ -99,7 +99,7 @@ AddButton(Main, {
   Name = "GET SPEED MAX",
     Description = "GET SPEED TO MAX", 
   Callback = function()
-    getgenv().playerSpeed = 55
+    getgenv().playerSpeed = 65
 
 local mt = getrawmetatable(game)
 local old = mt.__newindex 
@@ -387,6 +387,23 @@ loadstring(game:HttpsGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/h
           Time = 3
         })
     end
+})
+
+AddButton(Main, {
+  Name = "NO COOLDOWN V2",
+  Callback = function()
+repeat wait() until game:IsLoaded() and game:GetService("ReplicatedStorage").Controllers.AbilityController
+local CA = require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
+if not CA.AbilityCooldown or not CA then return end
+local o = CA.AbilityCooldown
+CA.AbilityCooldown = function(fn, a, ...)return o(fn, a, 0, ...)end
+
+        MakeNotifi({
+          Title = "SUCCES",
+          Text = "CONTROL BALL Completed✅",
+          Time = 3
+        })
+  end
 })
 
 
