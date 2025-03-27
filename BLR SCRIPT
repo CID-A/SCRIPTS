@@ -386,7 +386,7 @@ CA.AbilityCooldown = function(fn, a, ...)return o(fn, a, 0, ...)end
 
         MakeNotifi({
           Title = "SUCCES",
-          Text = "CONTROL BALL Completed✅",
+          Text = "NO COOLDOWN V2 Completed✅",
           Time = 3
         })
   end
