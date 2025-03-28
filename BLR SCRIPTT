@@ -1,0 +1,156 @@
+local players = game:GetService("Players") -- Corrected the order of declaration
+local player = players.LocalPlayer -- Moved this line after players is defined
+local teams = game:GetService("Teams")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local Library = loadstring(Game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+
+local PhantomForcesWindow = Library:NewWindow("BLUE | LOCK | HUB")
+
+local blr = PhantomForcesWindow:NewSection("SPEED & STUFF")
+
+blr:CreateButton("NO COOLDOWN V1", function()
+repeat wait() until game:IsLoaded() and game:GetService("ReplicatedStorage").Controllers.AbilityController
+local CA = require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
+if not CA.AbilityCooldown or not CA then return end
+local o = CA.AbilityCooldown
+CA.AbilityCooldown = function(fn, a, ...)return o(fn, a, 0, ...)end
+end)
+
+blr:CreateButton("INF STAMINA", function()
+while task.wait(0) do
+game.Players.LocalPlayer.PlayerStats.Stamina.Value = 100
+end
+end)
+
+blr:CreateButton("SPEED", function()
+getgenv().playerSpeed = 36
+
+local mt = getrawmetatable(game)
+local old = mt.__newindex 
+setreadonly(mt, false)
+mt.__newindex = function(self, idx, val)
+if idx == 'WalkSpeed' then 
+return old(self, idx, playerSpeed)
+end 
+return old(self, idx, val)
+end 
+setreadonly(mt, true)
+end)
+
+blr:CreateButton("SPEED MAX", function()
+getgenv().playerSpeed = 65
+
+local mt = getrawmetatable(game)
+local old = mt.__newindex 
+setreadonly(mt, false)
+mt.__newindex = function(self, idx, val)
+if idx == 'WalkSpeed' then 
+return old(self, idx, playerSpeed)
+end 
+return old(self, idx, val)
+end 
+setreadonly(mt, true)
+end)
+
+
+local blr = PhantomForcesWindow:NewSection("OTHERS")
+--TP BALL ☟
+local function trackFootball()
+    local character = player.Character or player.CharacterAdded:Wait()
+
+    while isAutoBallEnabled do
+        local football = workspace:FindFirstChild("Football")
+        if football then
+            if not character:FindFirstChild("Football") then
+                character:SetPrimaryPartCFrame(football.CFrame) -- Teleport to the football
+            end
+        else
+            print("Football is not in workspace anymore")
+        end
+        wait() -- Wait for 0.1 seconds before checking again
+    end
+end
+
+blr:CreateToggle("TP BALL", function(value)
+isAutoBallEnabled = value
+        if isAutoBallEnabled then
+            trackFootball() -- Start tracking the football
+        end
+end)
+
+blr:CreateToggle("INF JUMP", function(T)
+local InfiniteJumpEnabled = T
+    game:GetService("UserInputService").JumpRequest:connect(function()
+      if InfiniteJumpEnabled then
+        game:GetService("Players").LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
+      end
+    end)
+end)
+
+local blr = PhantomForcesWindow:NewSection("STYLES")
+
+local function set_style(desired_style)
+    if player:FindFirstChild("PlayerStats") then
+        local playerStats = player.PlayerStats
+        if playerStats:FindFirstChild("Style") then
+            playerStats.Style.Value = desired_style
+        end
+    end
+end
+
+blr:CreateTextbox("STYLE", function(value)
+
+
+      styleId = value 
+end)
+
+blr:CreateButton("GET THE STYLE", function()
+if styleId and styleId ~= "" then 
+        set_style(styleId)
+end
+end)
+
+local blr = PhantomForcesWindow:NewSection("1 TAP STYLES")
+
+blr:CreateButton("GET KURONA", function()
+      set_style("Kurona")
+end)
+
+blr:CreateButton("GET Nel Isagi", function()
+      set_style("NEL Isagi")
+end)
+
+blr:CreateButton("GET SAE", function()
+      set_style("Sae")
+end)
+
+blr:CreateButton("GET AIKU ", function()
+      set_style("Aiku")
+end)
+
+blr:CreateButton("GET KUNIGAMI", function()
+      set_style("Kunigami")
+end)
+
+blr:CreateButton("GET SHIDOU", function()
+      set_style("Shidou")
+end)
+
+local blr = PhantomForcesWindow:NewSection("SCRIPTS")
+
+blr:CreateButton("CURVE SHOT CAMERA", function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BLUE%20LOCK%20CURVE%20SHOT%20CAMERA"))()
+end)
+
+blr:CreateButton("CONTROL BALL⚽️", function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/CONTROL.txt"))()
+end)
+
+blr:CreateButton("GK HANDBALL ", function()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/RedJDark/MAIN/refs/heads/main/handball"))()
+end)
+
+blr:CreateButton("NO COOLDOWN V2", function()
+local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
+local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
+end)
