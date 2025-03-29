@@ -146,6 +146,10 @@ blr:CreateButton("CURVE SHOT CAMERA", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BLUE%20LOCK%20CURVE%20SHOT%20CAMERA"))()
 end)
 
+blr:CreateButton("BRING BALL", function()
+   loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BALL%20BRING"))()
+end)
+
 blr:CreateButton("GK BALL EXPANDER⚽️", function()
 loadstring(game:HttpGet("https://pastefy.app/tqzJSuNA/raw"))()
 end)
