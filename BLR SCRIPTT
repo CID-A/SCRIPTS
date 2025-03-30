@@ -14,12 +14,30 @@ local CA = require(game:GetService("ReplicatedStorage").Controllers.AbilityContr
 if not CA.AbilityCooldown or not CA then return end
 local o = CA.AbilityCooldown
 CA.AbilityCooldown = function(fn, a, ...)return o(fn, a, 0, ...)end
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "NO COOLDOWN LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
 
 blr:CreateButton("INF STAMINA", function()
 while task.wait(0) do
 game.Players.LocalPlayer.PlayerStats.Stamina.Value = 100
 end
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "INF STAMINA LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
 
 blr:CreateButton("SPEED", function()
@@ -89,6 +107,15 @@ end)
 
 blr:CreateButton("AUTO DRIBLE [ TEST ]", function()
 loadstring(game:HttpGet("https://pastefy.app/N007rDXe/raw"))()
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "AUTO DRIBLE LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
 
 local blr = PhantomForcesWindow:NewSection("STYLES")
@@ -144,6 +171,15 @@ local blr = PhantomForcesWindow:NewSection("SCRIPTS")
 
 blr:CreateButton("CURVE SHOT CAMERA", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BLUE%20LOCK%20CURVE%20SHOT%20CAMERA"))()
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "CURVE SHOT CAMERA LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
 
 blr:CreateButton("BRING BALL", function()
@@ -152,17 +188,53 @@ end)
 
 blr:CreateButton("GK BALL EXPANDER⚽️", function()
 loadstring(game:HttpGet("https://pastefy.app/tqzJSuNA/raw"))()
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "BALL EXPANDER LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
 
 blr:CreateButton("CONTROL BALL⚽️", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/CONTROL.txt"))()
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "CONTROL BALL LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
 
 blr:CreateButton("GK HANDBALL ", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/RedJDark/MAIN/refs/heads/main/handball"))()
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "GK HANDBALL LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
 
 blr:CreateButton("NO COOLDOWN V2", function()
 local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
 local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
+
+game:GetService("StarterGui"):SetCore("SendNotification",{
+Title = "NO COOLDOWN V2 LOADED✅!",
+Text = "BLUE LOCK SCRIPT", 
+
+Button1 = "OK",
+Button2 = "Cancel",
+Duration = 5
+})
 end)
