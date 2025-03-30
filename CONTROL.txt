@@ -19,6 +19,29 @@ controlButton.Size = UDim2.new(0.15, 0, 0.08, 0)
 controlButton.Position = UDim2.new(0.1, 0, 0.8, 997 - (915 + 82))
 controlButton.Text = "CONTROL"
 controlButton.Parent = screenGui
+-- Style the controlButton (similar styling to ascendButton)
+controlButton.Font = Enum.Font.SourceSansBold
+controlButton.TextSize = 20
+controlButton.TextColor3 = Color3.new(1, 1, 1)
+controlButton.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
+controlButton.BorderSizePixel = 2
+controlButton.BorderColor3 = Color3.new(0, 0, 0)
+controlButton.ClipsDescendants = true
+
+-- Gradient for controlButton
+local controlButtonGradient = Instance.new("UIGradient")
+controlButtonGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.new(0.9, 0.3, 0.3)),
+    ColorSequenceKeypoint.new(1, Color3.new(0.7, 0.2, 0.2))
+})
+controlButtonGradient.Rotation = 90
+controlButtonGradient.Parent = controlButton
+
+-- Rounded corners for controlButton
+local controlButtonCorner = Instance.new("UICorner")
+controlButtonCorner.CornerRadius = UDim.new(0, 8)
+controlButtonCorner.Parent = controlButton
+
 
 local frame = Instance.new("Frame")
 frame.Size = UDim2.new(0.3, 0, 1187.12 - (1069 + 118), 0)
@@ -26,6 +49,10 @@ frame.Position = UDim2.new(0.35, 0, 0.6, 0)
 frame.BackgroundColor3 = Color3.fromRGB(44 - 19, 25, 25)
 frame.Visible = false
 frame.Parent = screenGui
+--style
+frame.BorderSizePixel = 2
+frame.BorderColor3 = Color3.new(0, 0, 0)
+
 
 local speedLabel = Instance.new("TextLabel")
 speedLabel.Size = UDim2.new(1, 0, 0.3, 791 - (368 + 423))
@@ -40,12 +67,28 @@ innerFrame.Size = UDim2.new(0.9, 0, 0.4, 442 - (416 + 26))
 innerFrame.Position = UDim2.new(0.05, 0, 0.5, 0)
 innerFrame.BackgroundColor3 = Color3.fromRGB(693 - (145 + 293), 255, 685 - (44 + 386))
 innerFrame.Parent = frame
+--style
+innerFrame.BorderSizePixel = 2
+innerFrame.BorderColor3 = Color3.new(0, 0, 0)
 
 local statusFrame = Instance.new("Frame")
 statusFrame.Size = UDim2.new(1486.05 - (998 + 488), 0, 1, 0)
 statusFrame.Position = UDim2.new(772.07 - (201 + 571), 0, 1138 - (116 + 1022), 0)
 statusFrame.BackgroundColor3 = Color3.fromRGB(150 + 105, 0, 0)
 statusFrame.Parent = innerFrame
+--Style statusFrame
+statusFrame.BorderSizePixel = 2
+statusFrame.BorderColor3 = Color3.new(0, 0, 0)
+statusFrame.ClipsDescendants = true
+local statusFrameCorner = Instance.new("UICorner")
+statusFrameCorner.CornerRadius = UDim.new(0, 8)
+statusFrameCorner.Parent = statusFrame
+-- Style speedLabel
+speedLabel.Font = Enum.Font.SourceSansBold
+speedLabel.TextSize = 20
+speedLabel.TextColor3 = Color3.new(1, 1, 1)
+--speedLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
+--speedLabel.BackgroundTransparency = 0
 
 local madeByLabel = Instance.new("TextLabel")
 madeByLabel.Size = UDim2.new(0.3, 859 - (814 + 45), 0.1, 0)
@@ -56,6 +99,12 @@ madeByLabel.TextColor3 = Color3.fromRGB(1678 - (630 + 793), 863 - 608, 1207 - 95
 madeByLabel.TextScaled = true
 madeByLabel.Parent = screenGui
 madeByLabel.Visible = false
+-- Style madeByLabel
+madeByLabel.Font = Enum.Font.SourceSansBold
+madeByLabel.TextSize = 16
+madeByLabel.TextColor3 = Color3.new(1, 1, 1)
+--madeByLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
+--madeByLabel.BackgroundTransparency = 0
 
 local isControlActive = false
 local defaultSpeed = 14 + 21
@@ -270,30 +319,6 @@ madeByLabel.Visible = false
 wait(1 + 1)
 madeByLabel.Visible = false
 
-
--- Style the controlButton (similar styling to ascendButton)
-controlButton.Font = Enum.Font.SourceSansBold
-controlButton.TextSize = 20
-controlButton.TextColor3 = Color3.new(1, 1, 1)
-controlButton.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
-controlButton.BorderSizePixel = 2
-controlButton.BorderColor3 = Color3.new(0, 0, 0)
-controlButton.ClipsDescendants = true
-
--- Gradient for controlButton
-local controlButtonGradient = Instance.new("UIGradient")
-controlButtonGradient.Color = ColorSequence.new({
-    ColorSequenceKeypoint.new(0, Color3.new(0.9, 0.3, 0.3)),
-    ColorSequenceKeypoint.new(1, Color3.new(0.7, 0.2, 0.2))
-})
-controlButtonGradient.Rotation = 90
-controlButtonGradient.Parent = controlButton
-
--- Rounded corners for controlButton
-local controlButtonCorner = Instance.new("UICorner")
-controlButtonCorner.CornerRadius = UDim.new(0, 8)
-controlButtonCorner.Parent = controlButton
-
 -- Hover effect for controlButton
 controlButton.MouseEnter:Connect(function()
     controlButton.BackgroundColor3 = Color3.new(1, 0.4, 0.4)
@@ -302,33 +327,3 @@ end)
 controlButton.MouseLeave:Connect(function()
     controlButton.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3)
 end)
-
---Style frame
-frame.BorderSizePixel = 2
-frame.BorderColor3 = Color3.new(0, 0, 0)
-
--- Style innerFrame
-innerFrame.BorderSizePixel = 2
-innerFrame.BorderColor3 = Color3.new(0, 0, 0)
-
---Style statusFrame
-statusFrame.BorderSizePixel = 2
-statusFrame.BorderColor3 = Color3.new(0, 0, 0)
-statusFrame.ClipsDescendants = true
-local statusFrameCorner = Instance.new("UICorner")
-statusFrameCorner.CornerRadius = UDim.new(0, 8)
-statusFrameCorner.Parent = statusFrame
-
--- Style speedLabel
-speedLabel.Font = Enum.Font.SourceSansBold
-speedLabel.TextSize = 20
-speedLabel.TextColor3 = Color3.new(1, 1, 1)
---speedLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
---speedLabel.BackgroundTransparency = 0
-
--- Style madeByLabel
-madeByLabel.Font = Enum.Font.SourceSansBold
-madeByLabel.TextSize = 16
-madeByLabel.TextColor3 = Color3.new(1, 1, 1)
---madeByLabel.BackgroundColor3 = Color3.new(0.9, 0.3, 0.3) -- Red color
---madeByLabel.BackgroundTransparency = 0
