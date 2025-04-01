@@ -105,7 +105,7 @@ local InfiniteJumpEnabled = T
     end)
 end)
 
-blr:CreateButton("AUTO DRIBLE [ TEST ]", function()
+blr:CreateButton("AUTO DRIBLE [ work some error ]", function()
 loadstring(game:HttpGet("https://pastefy.app/N007rDXe/raw"))()
 
 game:GetService("StarterGui"):SetCore("SendNotification",{
@@ -116,6 +116,10 @@ Button1 = "OK",
 Button2 = "Cancel",
 Duration = 5
 })
+end)
+
+blr:CreateButton("ESP STYLE", function()
+loadstring(game:HttpGet("https://pastefy.app/ubgPSLxO/raw"))()
 end)
 
 local blr = PhantomForcesWindow:NewSection("STYLES")
@@ -188,15 +192,6 @@ end)
 
 blr:CreateButton("GK BALL EXPANDER⚽️", function()
 loadstring(game:HttpGet("https://pastefy.app/tqzJSuNA/raw"))()
-
-game:GetService("StarterGui"):SetCore("SendNotification",{
-Title = "BALL EXPANDER LOADED✅!",
-Text = "BLUE LOCK SCRIPT", 
-
-Button1 = "OK",
-Button2 = "Cancel",
-Duration = 5
-})
 end)
 
 blr:CreateButton("CONTROL BALL⚽️", function()
