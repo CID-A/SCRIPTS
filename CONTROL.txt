@@ -107,7 +107,7 @@ madeByLabel.TextColor3 = Color3.new(1, 1, 1)
 --madeByLabel.BackgroundTransparency = 0
 
 local isControlActive = false
-local defaultSpeed = 14 + 21
+local defaultSpeed = 150
 local ball
 local bodyVelocity
 local ballConnection
