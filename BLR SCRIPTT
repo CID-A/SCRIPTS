@@ -145,6 +145,10 @@ if styleId and styleId ~= "" then
 end
 end)
 
+blr:CreateButton("HITBOX TEST", function()
+loadsting(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/HITBOX%20TST"))()
+end)
+
 local blr = PhantomForcesWindow:NewSection("1 TAP STYLES")
 
 blr:CreateButton("GET KURONA", function()
