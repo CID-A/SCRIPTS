@@ -39,6 +39,22 @@ button.Position = UDim2.new(0, 10, 0, 60)
 button.TextScaled = true
 button.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green initially
 
+-- Toggle Button (bottom corner)
+local toggleButton = Instance.new("TextButton", screenGui)
+toggleButton.Size = UDim2.new(0, 100, 0, 30)
+toggleButton.Position = UDim2.new(1, -110, 1, -40)
+toggleButton.Text = "Toggle Menu"
+toggleButton.TextScaled = true
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.BorderSizePixel = 0
+
+local menuVisible = true
+toggleButton.MouseButton1Click:Connect(function()
+	menuVisible = not menuVisible
+	frame.Visible = menuVisible
+end)
+
 -- Vars
 local hitboxPart = nil
 local connection = nil
