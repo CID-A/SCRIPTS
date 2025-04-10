@@ -147,6 +147,10 @@ end)
 
 local blr = PhantomForcesWindow:NewSection("1 TAP STYLES")
 
+blr:CreateButton("GET KAISER", function()
+       set_style("Kaiser")
+end)
+
 blr:CreateButton("GET KURONA", function()
       set_style("Kurona")
 end)
@@ -175,15 +179,6 @@ local blr = PhantomForcesWindow:NewSection("SCRIPTS")
 
 blr:CreateButton("CURVE SHOT CAMERA", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/BLUE%20LOCK%20CURVE%20SHOT%20CAMERA"))()
-
-game:GetService("StarterGui"):SetCore("SendNotification",{
-Title = "CURVE SHOT CAMERA LOADED✅!",
-Text = "BLUE LOCK SCRIPT", 
-
-Button1 = "OK",
-Button2 = "Cancel",
-Duration = 5
-})
 end)
 
 blr:CreateButton("BRING BALL", function()
@@ -196,40 +191,13 @@ end)
 
 blr:CreateButton("CONTROL BALL⚽️", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/CID-A/SCRIPTS/refs/heads/main/CONTROL.txt"))()
-
-game:GetService("StarterGui"):SetCore("SendNotification",{
-Title = "CONTROL BALL LOADED✅!",
-Text = "BLUE LOCK SCRIPT", 
-
-Button1 = "OK",
-Button2 = "Cancel",
-Duration = 5
-})
 end)
 
 blr:CreateButton("GK HANDBALL ", function()
 loadstring(game:HttpGet("https://raw.githubusercontent.com/RedJDark/MAIN/refs/heads/main/handball"))()
-
-game:GetService("StarterGui"):SetCore("SendNotification",{
-Title = "GK HANDBALL LOADED✅!",
-Text = "BLUE LOCK SCRIPT", 
-
-Button1 = "OK",
-Button2 = "Cancel",
-Duration = 5
-})
 end)
 
 blr:CreateButton("NO COOLDOWN V2", function()
 local C=require(game:GetService("ReplicatedStorage").Controllers.AbilityController)
 local o=C.AbilityCooldown C.AbilityCooldown=function(s,n,...)return o(s,n,0,...)end
-
-game:GetService("StarterGui"):SetCore("SendNotification",{
-Title = "NO COOLDOWN V2 LOADED✅!",
-Text = "BLUE LOCK SCRIPT", 
-
-Button1 = "OK",
-Button2 = "Cancel",
-Duration = 5
-})
 end)
