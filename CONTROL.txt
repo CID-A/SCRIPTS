@@ -12,7 +12,7 @@ local GUI = Instance.new("ScreenGui")
 GUI.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local ControlButton = Instance.new("TextButton")
-ControlButton.Size = UDim2.new(0.15, 0, 0.08, 0)
+ControlButton.Size = UDim2.new(0.1, 0, 0.08, 0)
 ControlButton.Position = UDim2.new(0.1, 0, 0.8, 0)
 ControlButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 ControlButton.Text = "CONTROL"
