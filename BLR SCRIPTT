@@ -122,7 +122,7 @@ blr:CreateButton("ESP STYLE", function()
 loadstring(game:HttpGet("https://pastefy.app/ubgPSLxO/raw"))()
 end)
 
-blr:CreateButton("AWK KAISER/KURONA/KING", function()
+blr:CreateButton("AWK [KAISER KURONA KING]", function()
 game:GetService("Players").LocalPlayer.PlayerStats.InAwakening.Value=true
 end)
 
