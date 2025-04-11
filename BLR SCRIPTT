@@ -130,7 +130,7 @@ blr:CreateButton("AWK OFF", function()
 game:GetService("Players").LocalPlayer.PlayerStats.InAwakening.Value=false
 end)
 
-blr:createButton"INF FLOW", function()
+blr:createButton("INF FLOW", function()
 game:GetService("Players").LocalPlayer.PlayerStats.InFlow.Value=true
 end)
 
