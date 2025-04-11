@@ -130,10 +130,6 @@ blr:CreateButton("AWK OFF", function()
 game:GetService("Players").LocalPlayer.PlayerStats.InAwakening.Value=false
 end)
 
-blr:CreateButton("INF FLOW", function()
-game:GetService("Players").LocalPlayer.PlayerStats.InFlow.Value=true
-end)
-
 local blr = PhantomForcesWindow:NewSection("STYLES")
 
 local function set_style(desired_style)
