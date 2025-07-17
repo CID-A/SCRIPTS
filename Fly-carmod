@@ -1,0 +1,194 @@
+-- Fly Car UI Minimalista | Hecho por CID
+
+local Players = game:GetService("Players")
+local UIS = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local hrp = char:WaitForChild("HumanoidRootPart")
+
+-- GUI
+local gui = Instance.new("ScreenGui", game.CoreGui)
+gui.Name = "CIDFlyCarUI"
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0, 240, 0, 140)
+frame.Position = UDim2.new(0.4, 0, 0.4, 0)
+frame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+frame.BorderSizePixel = 0
+frame.Active, frame.Draggable = true, true
+
+-- Header
+local header = Instance.new("TextLabel", frame)
+header.Size = UDim2.new(1, -54, 0, 30)
+header.Position = UDim2.new(0, 0, 0, 0)
+header.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+header.Text = "Car fly - CID"
+header.Font = Enum.Font.SourceSansBold
+header.TextColor3 = Color3.new(1, 1, 1)
+header.TextSize = 18
+
+-- Minimize Button
+local minimize = Instance.new("TextButton", frame)
+minimize.Size = UDim2.new(0, 27, 0, 30)
+minimize.Position = UDim2.new(1, -54, 0, 0)
+minimize.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+minimize.Text = "-"
+minimize.Font = Enum.Font.SourceSansBold
+minimize.TextColor3 = Color3.new(1, 1, 1)
+minimize.TextSize = 20
+
+-- Close Button
+local close = Instance.new("TextButton", frame)
+close.Size = UDim2.new(0, 27, 0, 30)
+close.Position = UDim2.new(1, -27, 0, 0)
+close.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+close.Text = "X"
+close.Font = Enum.Font.SourceSansBold
+close.TextColor3 = Color3.new(1, 1, 1)
+close.TextSize = 20
+
+-- Status
+local statusLabel = Instance.new("TextLabel", frame)
+statusLabel.Position = UDim2.new(0.05, 0, 0.25, 0)
+statusLabel.Size = UDim2.new(0.4, 0, 0, 25)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Status:"
+statusLabel.TextColor3 = Color3.new(1, 1, 1)
+statusLabel.Font = Enum.Font.SourceSans
+statusLabel.TextSize = 16
+
+local statusValue = Instance.new("TextLabel", frame)
+statusValue.Position = UDim2.new(0.45, 0, 0.25, 0)
+statusValue.Size = UDim2.new(0.2, 0, 0, 25)
+statusValue.BackgroundTransparency = 1
+statusValue.Text = "Off"
+statusValue.TextColor3 = Color3.fromRGB(255, 0, 0)
+statusValue.Font = Enum.Font.SourceSansBold
+statusValue.TextSize = 16
+
+-- Speed
+local speedLabel = Instance.new("TextLabel", frame)
+speedLabel.Text = "Speed:"
+speedLabel.Position = UDim2.new(0.05, 0, 0.45, 0)
+speedLabel.Size = UDim2.new(0.4, 0, 0, 30)
+speedLabel.BackgroundTransparency = 1
+speedLabel.TextColor3 = Color3.new(1, 1, 1)
+speedLabel.Font = Enum.Font.SourceSans
+speedLabel.TextSize = 16
+
+local speedBox = Instance.new("TextBox", frame)
+speedBox.Position = UDim2.new(0.45, 0, 0.45, 0)
+speedBox.Size = UDim2.new(0.45, 0, 0, 30)
+speedBox.Text = "50"
+speedBox.TextColor3 = Color3.new(1, 1, 1)
+speedBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+speedBox.Font = Enum.Font.SourceSans
+speedBox.TextScaled = true
+
+-- Enable/Disable button
+local toggle = Instance.new("TextButton", frame)
+toggle.Text = "Enable"
+toggle.Position = UDim2.new(0.05, 0, 0.75, 0)
+toggle.Size = UDim2.new(0.9, 0, 0, 30)
+toggle.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+toggle.TextColor3 = Color3.new(1, 1, 1)
+toggle.Font = Enum.Font.SourceSansBold
+toggle.TextSize = 16
+
+-- Mobile Controls
+local flyControls = Instance.new("Frame", gui)
+flyControls.Size = UDim2.new(0, 90, 0, 150)
+flyControls.Position = UDim2.new(0.02, 0, 0.7, 0)
+flyControls.BackgroundTransparency = 1
+flyControls.Visible = false
+
+local upBtn = Instance.new("TextButton", flyControls)
+upBtn.Size = UDim2.new(1, 0, 0.45, 0)
+upBtn.Position = UDim2.new(0, 0, 0, 0)
+upBtn.Text = "↑"
+upBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 191)
+upBtn.TextColor3 = Color3.new(1, 1, 1)
+upBtn.Font = Enum.Font.SourceSansBold
+upBtn.TextScaled = true
+
+local downBtn = Instance.new("TextButton", flyControls)
+downBtn.Size = UDim2.new(1, 0, 0.45, 0)
+downBtn.Position = UDim2.new(0, 0, 0.55, 0)
+downBtn.Text = "↓"
+downBtn.BackgroundColor3 = Color3.fromRGB(0, 150, 191)
+downBtn.TextColor3 = Color3.new(1, 1, 1)
+downBtn.Font = Enum.Font.SourceSansBold
+downBtn.TextScaled = true
+
+-- Lógica de vuelo
+local flying = false
+local bv, bg
+local function getSpeed()
+	return tonumber(speedBox.Text) or 50
+end
+
+local function startFly()
+	bv = Instance.new("BodyVelocity", hrp)
+	bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+	bg = Instance.new("BodyGyro", hrp)
+	bg.MaxTorque = Vector3.new(math.huge, math.huge, math.huge)
+	bg.P = 100000
+	bg.D = 5000
+	RunService.RenderStepped:Connect(function()
+		if flying then
+			bg.CFrame = workspace.CurrentCamera.CFrame
+		end
+	end)
+end
+
+local function stopFly()
+	if bv then bv:Destroy() end
+	if bg then bg:Destroy() end
+end
+
+local function moveFly(dir)
+	if flying and bv then
+		bv.Velocity = workspace.CurrentCamera.CFrame.LookVector * getSpeed() * dir
+		wait(0.15)
+		bv.Velocity = Vector3.zero
+	end
+end
+
+upBtn.MouseButton1Click:Connect(function() moveFly(1) end)
+downBtn.MouseButton1Click:Connect(function() moveFly(-1) end)
+
+toggle.MouseButton1Click:Connect(function()
+	if flying then
+		flying = false
+		toggle.Text = "Enable"
+		statusValue.Text = "Off"
+		statusValue.TextColor3 = Color3.fromRGB(255, 0, 0)
+		flyControls.Visible = false
+		stopFly()
+	else
+		flying = true
+		toggle.Text = "Disable"
+		statusValue.Text = "On"
+		statusValue.TextColor3 = Color3.fromRGB(0, 255, 0)
+		flyControls.Visible = true
+		startFly()
+	end
+end)
+
+close.MouseButton1Click:Connect(function()
+	gui:Destroy()
+end)
+
+local minimized = false
+minimize.MouseButton1Click:Connect(function()
+	minimized = not minimized
+	minimize.Text = minimized and "+" or "-"
+	for _, obj in pairs(frame:GetChildren()) do
+		if obj ~= header and obj ~= minimize and obj ~= close then
+			obj.Visible = not minimized
+		end
+	end
+	frame.Size = minimized and UDim2.new(0, 240, 0, 30) or UDim2.new(0, 240, 0, 140)
+end)
