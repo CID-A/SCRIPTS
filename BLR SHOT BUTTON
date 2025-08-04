@@ -1,0 +1,153 @@
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local rootPart = character:WaitForChild("HumanoidRootPart")
+
+-- GUI Setup
+local gui = Instance.new("ScreenGui")
+local mainFrame = Instance.new("Frame")
+local curveButton = Instance.new("ImageButton")
+local buttonIcon = Instance.new("ImageLabel")
+
+gui.Name = "CurvehxhGUI"
+gui.Parent = player:WaitForChild("PlayerGui")
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.ResetOnSpawn = false
+
+mainFrame.Name = "MainFrame"
+mainFrame.Parent = gui
+mainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+mainFrame.Position = UDim2.new(0.09, 704, 0.56, 98)
+mainFrame.Size = UDim2.new(0, 80, 0, 14)
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Transparency = 0.8
+
+curveButton.Name = "CurveButton"
+curveButton.Parent = mainFrame
+curveButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+curveButton.Position = UDim2.new(0.243, 0, 0.345, 0)
+curveButton.Size = UDim2.new(0, 50, 0, 50)
+curveButton.Image = "rbxassetid://140379822604324"
+curveButton.BackgroundTransparency = 1
+curveButton.BorderSizePixel = 0
+
+buttonIcon.Name = "ButtonIcon"
+buttonIcon.Parent = curveButton
+buttonIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+buttonIcon.Size = UDim2.new(0, 50, 0, 35)
+buttonIcon.Image = "rbxassetid://77130576028106"
+buttonIcon.BackgroundTransparency = 1
+buttonIcon.BorderSizePixel = 0
+buttonIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+buttonIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+-- Configuración
+local isOnCooldown = false
+local BASE_BALL_SPEED = 180 -- Disparo rápido
+local COOLDOWN_TIME = 0.5
+
+-- Animación botón
+local function animateButton(button)
+	local tweenInfo = TweenInfo.new(0.13, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+	local scaleUp = {Size = UDim2.new(0, 54, 0, 54)}
+	local scaleDown = {Size = UDim2.new(0, 50, 0, 50)}
+	local scaleUpTween = TweenService:Create(button, tweenInfo, scaleUp)
+	scaleUpTween:Play()
+	scaleUpTween.Completed:Connect(function()
+		local scaleDownTween = TweenService:Create(button, tweenInfo, scaleDown)
+		scaleDownTween:Play()
+	end)
+end
+
+-- Checar si el jugador tiene balón
+local function hasFootball()
+	if not character then return false end
+	for _, item in ipairs(character:GetChildren()) do
+		if (item:IsA("BasePart") or item:IsA("Model")) and item.Name == "Football" then
+			return true
+		end
+	end
+	return false
+end
+
+-- Callback botón de disparo
+curveButton.MouseButton1Down:Connect(function()
+	animateButton(curveButton)
+
+	if isOnCooldown then
+		game.StarterGui:SetCore("SendNotification", {
+			Title = "Cooldown!",
+			Text = "Wait before shooting again",
+			Duration = 0.7,
+		})
+		return
+	end
+
+	if not hasFootball() then
+		game.StarterGui:SetCore("SendNotification", {
+			Title = "No Football!",
+			Text = "You need a football to shoot",
+			Duration = 0.7,
+		})
+		return
+	end
+
+	isOnCooldown = true
+
+	-- Animación
+	local animation = Instance.new("Animation")
+	animation.AnimationId = "rbxassetid://18668827116"
+	local animator = humanoid:FindFirstChildOfClass("Animator") or Instance.new("Animator", humanoid)
+	for _, track in ipairs(animator:GetPlayingAnimationTracks()) do
+		if track.Animation.AnimationId == animation.AnimationId then
+			track:Stop()
+		end
+	end
+	local animTrack = animator:LoadAnimation(animation)
+	animTrack.Priority = Enum.AnimationPriority.Action4
+	animTrack:Play()
+
+	task.wait(0.1)
+
+	-- Disparo normal
+	local shootArgs = {
+		[1] = BASE_BALL_SPEED
+	}
+	local ballService = ReplicatedStorage:WaitForChild("Packages"):WaitForChild("Knit"):WaitForChild("Services"):WaitForChild("BallService")
+	ballService.RE.Shoot:FireServer(unpack(shootArgs))
+
+	task.wait(0.18)
+
+	local football = Workspace:FindFirstChild("Football")
+	local hitbox = football and football:FindFirstChild("Hitbox")
+
+	if not hitbox then
+		warn("No hitbox found")
+		isOnCooldown = false
+		return
+	end
+
+	-- Dirección exacta de la cámara 🚨🔥
+	local lookVector = Workspace.CurrentCamera.CFrame.LookVector
+
+	local bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.MaxForce = Vector3.new(100000, 100000, 100000) -- Full fuerza
+	bodyVelocity.Velocity = lookVector * BASE_BALL_SPEED
+	bodyVelocity.Parent = hitbox
+
+	task.delay(0.3, function()
+		if bodyVelocity then bodyVelocity:Destroy() end
+	end)
+
+	-- Reset cooldown
+	task.delay(COOLDOWN_TIME, function()
+		isOnCooldown = false
+	end)
+end)
