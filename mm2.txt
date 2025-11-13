@@ -2745,59 +2745,115 @@ CustomTab:Toggle({
     end
 })
 
--- Anti-AFK mejorado para WindUI 1.6.6
+-- === ANTI-AFK MEJORADO (Reemplaza la sección anterior) ===
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+
 local AntiAFK = {
     Enabled = false,
-    Connection = nil,
+    Connection_Idled = nil, -- Conexión al evento Idled
+    Connection_Heartbeat = nil, -- Conexión adicional para prevenir AFK
     VirtualUser = game:GetService("VirtualUser"),
-    Player = game:GetService("Players").LocalPlayer
+    Player = Players.LocalPlayer
 }
+
+-- Función para prevenir el AFK interceptando el evento Idled
+function AntiAFK:HandleIdled()
+    -- Si el AntiAFK está habilitado, evitamos que se dispare la desconexión
+    if self.Enabled then
+        -- Deshabilitamos todas las conexiones actuales al evento Idled
+        -- Esto es crucial: evita que el comportamiento por defecto (expulsión) ocurra
+        for _, conn in pairs(getconnections(self.Player.Idled)) do
+            if conn.Function and conn.Function ~= self.HandleIdled then
+                -- Evitar desconectar nuestra propia función recursivamente
+                conn:Disable()
+            end
+        end
+        -- Simulamos una interacción para restablecer el temporizador de AFK
+        self.VirtualUser:CaptureController()
+        self.VirtualUser:ClickButton2(Vector2.new(0, 0))
+        -- Opcional: Reiniciar la conexión si es necesario (menos común, pero puede ayudar)
+        -- if self.Connection_Idled then
+        --     self.Connection_Idled:Disconnect()
+        --     self.Connection_Idled = self.Player.Idled:Connect(function() self:HandleIdled() end)
+        -- end
+    end
+end
 
 function AntiAFK:Start()
     if self.Enabled then return end
-    
     self.Enabled = true
-    
-    -- Desconectar conexiones existentes de Idled
-    for _, conn in pairs(getconnections(self.Player.Idled)) do
-        conn:Disable()
+
+    -- Conectar la función que manejará el evento Idled
+    if not self.Connection_Idled then
+        -- Importante: Conectar antes de que se dispare para interceptarlo
+        -- Usamos el evento directamente para asegurar la prevención
+        self.Connection_Idled = self.Player.Idled:Connect(function()
+            -- Llama a la función que maneja la prevención
+            self:HandleIdled()
+            -- Opcional: Notificar cada vez que se previene el AFK
+            -- print("AFK Prevented!")
+        end)
     end
-    
-    -- Crear nueva conexión anti-afk
-    self.Connection = self.Player.Idled:Connect(function()
-        self.VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-        task.wait(1)
-        self.VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
-    end)
-    
+
+    -- Opcional: Conexión adicional en RunService para enviar una señal más frecuente
+    -- A veces, enviar una señal periódica puede ayudar, aunque no siempre es necesario
+    -- if not self.Connection_Heartbeat then
+    --     self.Connection_Heartbeat = RunService.Heartbeat:Connect(function()
+    --         if self.Enabled then
+    --             -- Simular una interacción muy leve
+    --             -- CUIDADO: Esto puede ser detectado como cheat en algunos juegos
+    --             -- self.VirtualUser:MovePosition(Vector2.new(0, 0)) -- Ejemplo
+    --         end
+    --     end)
+    -- end
+
+    -- Deshabilitar cualquier conexión existente al evento Idled que no sea la nuestra
+    -- para asegurar que nuestra lógica sea la que prevalece
+    for _, conn in pairs(getconnections(self.Player.Idled)) do
+        if conn.Function ~= self.HandleIdled then
+            conn:Disable()
+        end
+    end
+
     WindUI:Notify({
         Title = "Anti-AFK",
-        Content = "Anti-AFK activado",
+        Content = "Anti-AFK activado y mejorado",
         Duration = 2
     })
+    print("Anti-AFK Mejorado Activado") -- Mensaje en consola para confirmar
 end
 
 function AntiAFK:Stop()
     if not self.Enabled then return end
-    
     self.Enabled = false
-    
-    -- Desconectar la conexión
-    if self.Connection then
-        self.Connection:Disconnect()
-        self.Connection = nil
+
+    -- Desconectar la conexión principal
+    if self.Connection_Idled then
+        self.Connection_Idled:Disconnect()
+        self.Connection_Idled = nil
+        print("Anti-AFK Connection_Idled desconectada")
     end
-    
-    -- Volver a habilitar las conexiones originales (opcional)
+
+    -- Desconectar la conexión opcional si se usó
+    -- if self.Connection_Heartbeat then
+    --     self.Connection_Heartbeat:Disconnect()
+    --     self.Connection_Heartbeat = nil
+    --     print("Anti-AFK Connection_Heartbeat desconectada")
+    -- end
+
+    -- Volver a habilitar las conexiones originales del juego al Idled (por si acaso)
     for _, conn in pairs(getconnections(self.Player.Idled)) do
         conn:Enable()
     end
-    
+
     WindUI:Notify({
-        Title = "Anti-AFK", 
+        Title = "Anti-AFK",
         Content = "Anti-AFK desactivado",
         Duration = 2
     })
+    print("Anti-AFK Mejorado Desactivado") -- Mensaje en consola para confirmar
 end
 
 function AntiAFK:Toggle()
@@ -2808,7 +2864,7 @@ function AntiAFK:Toggle()
     end
 end
 
--- Añadir toggle a WindUI
+-- Añadir toggle a WindUI (esto permanece igual)
 CustomTab:Toggle({
     Title = "Anti-AFK",
     Icon = "shield",
@@ -2824,8 +2880,6 @@ CustomTab:Toggle({
 })
 
 CustomTab:Paragraph({
-    Title = "Anti-AFK System",
-    Content = "Previene que te desconectes por inactividad"
+    Title = "Anti-AFK Sistema",
+    Content = "Previene que te desconecten por inactividad."
 })
-
-
