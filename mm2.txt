@@ -73,12 +73,15 @@ MiscTab:Paragraph({
     Color = "Blue",
 })
 
--- Variables para el Shoot Murder hotkey
-local shootMurderHotkey = Enum.KeyCode.Z
+-- Variables para el Shoot Murder hotkey PC
+local shootMurderHotkey = "F"
 local shootMurderEnabled = false
+local shootMurderConnection = nil
 
--- Tu función de disparar al murderer
+-- Función de disparar al murderer
 local function shootMurder()
+    print("🔫 Función shootMurder ejecutándose...")
+    
     -- Primero equipar el arma automáticamente
     local localPlayer = game.Players.LocalPlayer
     local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
@@ -86,6 +89,7 @@ local function shootMurder()
     -- Buscar y equipar el arma automáticamente
     local gun = localPlayer.Backpack:FindFirstChild("Gun") or character:FindFirstChild("Gun")
     if gun and gun:IsA("Tool") then
+        print("✅ Arma encontrada, equipando...")
         local humanoid = character:FindFirstChildOfClass("Humanoid")
         if humanoid then
             humanoid:EquipTool(gun)
@@ -94,9 +98,10 @@ local function shootMurder()
     else
         WindUI:Notify({
             Title = "Error",
-            Content = "No tienes arma equipada",
+            Content = "No tienes arma",
             Duration = 3
         })
+        print("❌ No se encontró arma")
         return
     end
 
@@ -122,10 +127,11 @@ local function shootMurder()
     end
 
     if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
+        print("✅ Murderer encontrado: " .. murder.Name)
         local hrp = murder.Character.HumanoidRootPart
         local murderPos = hrp.Position
 
-        -- Cálculo de lead shot
+        -- Cálculo de lead shot (igual que Fluent)
         local velocity = hrp.Velocity
         local pingMs = 0
         local stats = game:GetService("Stats")
@@ -160,7 +166,7 @@ local function shootMurder()
                     if remoteFunction then
                         remoteFunction:InvokeServer(unpack(args))
                         WindUI:Notify({
-                            Title = "Disparo",
+                            Title = "Disparo PC",
                             Content = "Disparado a " .. murder.Name,
                             Duration = 3
                         })
@@ -172,7 +178,7 @@ local function shootMurder()
         
         WindUI:Notify({
             Title = "Error",
-            Content = "Problema con el arma equipada",
+            Content = "Problema con el arma",
             Duration = 3
         })
     else
@@ -184,9 +190,8 @@ local function shootMurder()
     end
 end
 
--- Conexión del hotkey
-local shootMurderConnection
-local function setupShootMurderHotkey()
+-- Configurar hotkey de PC
+local function setupPCHotkey()
     if shootMurderConnection then
         shootMurderConnection:Disconnect()
     end
@@ -194,18 +199,18 @@ local function setupShootMurderHotkey()
     shootMurderConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
         
-        if input.KeyCode == shootMurderHotkey and shootMurderEnabled then
+        if input.KeyCode == Enum.KeyCode[shootMurderHotkey] and shootMurderEnabled then
             shootMurder()
         end
     end)
 end
 
 -- Configuración inicial
-setupShootMurderHotkey()
+setupPCHotkey()
 
--- Añadir solo el toggle para el hotkey
+-- Toggle para activar/desactivar el hotkey de PC
 MiscTab:Toggle({
-    Title = "Disparar Asesino (Teclado)",
+    Title = "Disparar Asesino (PC - Teclado)",
     Icon = "keyboard",
     Type = "Checkbox",
     Default = false,
@@ -213,37 +218,44 @@ MiscTab:Toggle({
         shootMurderEnabled = state
         if state then
             WindUI:Notify({
-                Title = "Tecla para disparar",
-                Content = "Activado - Presiona " .. tostring(shootMurderHotkey):gsub("Enum.KeyCode.", "") .. " Para Disparar",
-                Duration = 3
+                Title = "Hotkey PC Activado",
+                Content = "Presiona " .. shootMurderHotkey .. " para disparar al asesino",
+                Duration = 4
             })
         else
             WindUI:Notify({
-                Title = "Tecla para disparar", 
-                Content = "Desactivado",
+                Title = "Hotkey PC Desactivado", 
+                Content = "Tecla " .. shootMurderHotkey .. " deshabilitada",
                 Duration = 2
             })
         end
     end
 })
 
-MiscTab:Keybind({
-    Title = "Cambiar Tecla Disparo",
-    Default = "Z",
-    Callback = function(key)
-        shootMurderHotkey = key
-        setupShootMurderHotkey()
-        WindUI:Notify({
-            Title = "Actualizado", 
-            Content = "Tecla actualizada: " .. tostring(key):gsub("Enum.KeyCode.", ""),
-            Duration = 2
-        })
+-- Input para cambiar la tecla (sin Keybind que interfiera)
+MiscTab:Input({
+    Title = "Cambiar Tecla Disparo PC",
+    Icon = "key",
+    Type = "Default",
+    Placeholder = "F",
+    Callback = function(text)
+        if text and text ~= "" then
+            local newKey = string.upper(string.sub(text, 1, 1))
+            shootMurderHotkey = newKey
+            setupPCHotkey()
+            
+            WindUI:Notify({
+                Title = "Tecla Actualizada", 
+                Content = "Tecla de disparo: " .. newKey,
+                Duration = 3
+            })
+        end
     end
 })
 
 MiscTab:Paragraph({
-    Title = "Disparar Asesino PC",
-    Content = "Tecla actual: " .. tostring(shootMurderHotkey):gsub("Enum.KeyCode.", "")
+    Title = "Disparar Asesino - Solo PC",
+    Content = "Activa el toggle y presiona " .. shootMurderHotkey .. " para disparar al asesino"
 })
 
 getgenv().speedEnabled = false
@@ -2815,4 +2827,5 @@ CustomTab:Paragraph({
     Title = "Anti-AFK System",
     Content = "Previene que te desconectes por inactividad"
 })
+
 
