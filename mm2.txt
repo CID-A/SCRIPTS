@@ -27,7 +27,7 @@ local Window = WindUI:CreateWindow({
     Resizable = true,
     SideBarWidth = 200,
     Background = "",
-    BackgroundImageTransparency = 0.50,
+    BackgroundImageTransparency = 0.80,
     HideSearchBar = true,
     ScrollBarEnabled = false,
     User = {
@@ -69,48 +69,189 @@ local MiscTab = Window:Tab({
 
 MiscTab:Paragraph({
     Title = "HOLA",
-    Desc = " MURDER MYSTERY 2",
+    Desc = " ESTA SECCIÓN ES PARA PC",
     Color = "Blue",
-    Buttons = {{
-        Icon = "cloud",
-        Title = "ESTA SECCIÓN NO FUNCIONA POR EL MOMENTO",
-        Callback = function() end,
-    }}
 })
 
-MiscTab:Slider({
-    Title = "Altura De Salto",
-    Step = 1,
-    Value = { Min = 50, Max = 500, Default = 50 },
-    Callback = function(value)
-        env.Jumppower = value
-        if env.Hum then pcall(function() env.Hum.JumpPower = value end) end
+-- Variables para el Shoot Murder hotkey
+local shootMurderHotkey = "Z"
+local shootMurderEnabled = false
+
+-- Tu función de disparar al murderer (ya debe existir)
+local function shootMurder()
+    -- Primero equipar el arma automáticamente
+    local localPlayer = game.Players.LocalPlayer
+    local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
+    
+    -- Buscar y equipar el arma automáticamente
+    local gun = localPlayer.Backpack:FindFirstChild("Gun") or character:FindFirstChild("Gun")
+    if gun and gun:IsA("Tool") then
+        local humanoid = character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            humanoid:EquipTool(gun)
+            wait(0.1)
+        end
     end
-})
 
+    -- Buscar al murderer
+    local murder = nil
+    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+        if player ~= localPlayer then
+            local hasKnife = false
+
+            if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
+                hasKnife = true
+            end
+
+            if player.Character and player.Character:FindFirstChild("Knife") then
+                hasKnife = true
+            end
+
+            if hasKnife then
+                murder = player
+                break
+            end
+        end
+    end
+
+    if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
+        local hrp = murder.Character.HumanoidRootPart
+        local murderPos = hrp.Position
+
+        -- Cálculo de lead shot
+        local velocity = hrp.Velocity
+        local pingMs = 0
+        local stats = game:GetService("Stats")
+        if stats:FindFirstChild("Network") and stats.Network:FindFirstChild("ServerStatsItem") then
+            local pingStat = stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+            if pingStat then
+                pingMs = pingStat:GetValue()
+            end
+        end
+        local pingSec = math.clamp(pingMs / 1000, 0, 1)
+        local leadOffset = velocity * pingSec
+
+        if velocity.Magnitude < 2 then
+            leadOffset = Vector3.new(0, 0, 0)
+        end
+
+        local targetPos = murderPos + leadOffset
+        local args = {
+            1,
+            Vector3.new(targetPos.X, targetPos.Y, targetPos.Z),
+            "AH2"
+        }
+
+        -- Ejecutar disparo
+        local equippedGun = character:FindFirstChild("Gun")
+        if equippedGun then
+            local knifeLocal = equippedGun:FindFirstChild("KnifeLocal")
+            if knifeLocal then
+                local createBeam = knifeLocal:FindFirstChild("CreateBeam")
+                if createBeam then
+                    local remoteFunction = createBeam:FindFirstChild("RemoteFunction")
+                    if remoteFunction then
+                        remoteFunction:InvokeServer(unpack(args))
+                        WindUI:Notify({
+                            Title = "Disparo",
+                            Content = "Disparado a " .. murder.Name,
+                            Duration = 3
+                        })
+                        return
+                    end
+                end
+            end
+        end
+        
+        WindUI:Notify({
+            Title = "Error",
+            Content = "No tienes arma",
+            Duration = 3
+        })
+    else
+        WindUI:Notify({
+            Title = "Error",
+            Content = "No se encontró Asesino!",
+            Duration = 3
+        })
+    end
+end
+
+-- Conexión del hotkey
+local shootMurderConnection
+local function setupShootMurderHotkey()
+    if shootMurderConnection then
+        shootMurderConnection:Disconnect()
+    end
+    
+    shootMurderConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        
+        if input.KeyCode == Enum.KeyCode[shootMurderHotkey] and shootMurderEnabled then
+            shootMurder()
+        end
+    end)
+end
+
+-- Configuración inicial
+setupShootMurderHotkey()
+
+-- Añadir solo el toggle y textbox para el hotkey
 MiscTab:Toggle({
-    Title = "Salto Auto",
-    Icon = "repeat",
+    Title = "Disparar Asesino (activar para usar teclado)",
+    Icon = "keyboard",
     Type = "Checkbox",
     Default = false,
     Callback = function(state)
-        env.KeepJumppower = state
+        shootMurderEnabled = state
         if state then
-            spawn(function()
-                while env.KeepJumppower do
-                    if env.Hum and env.Jumppower then
-                        pcall(function()
-                            if env.Hum.JumpPower ~= env.Jumppower then
-                                env.Hum.JumpPower = env.Jumppower
-                            end
-                        end)
-                    end
-                    task.wait(0.2)
-                end
-            end)
+            WindUI:Notify({
+                Title = "Tecla para disparar",
+                Content = "Activado - Presiona" .. shootMurderHotkey .. " Para Disparar",
+                Duration = 2
+            })
+        else
+            WindUI:Notify({
+                Title = "Tecla para disparar", 
+                Content = "Desactivado",
+                Duration = 2
+            })
         end
     end
 })
+
+MiscTab:Keybind({
+    Title = "Tecla Para Usar",
+    Default = "Z",
+    Callback = function(key)
+        local newKey = string.upper(string.sub(tostring(key), 1, 1))
+        shootMurderHotkey = newKey
+        setupShootMurderHotkey()
+        WindUI:Notify({
+            Title = "Actualizado", 
+            Content = "Teclado Actualizado: " .. newKey,
+            Duration = 2
+        })
+    end
+})
+
+
+MiscTab:Paragraph({
+    Title = "Disparar Asesino PC",
+    Content = "Pulse la tecla configurada para disparar al asesino. Tecla actual: " .. shootMurderHotkey
+})
+
+getgenv().speedEnabled = false
+getgenv().speedValue = 16
+
+local speedLoop
+local function updateSpeed()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hum = char:FindFirstChild("Humanoid")
+    if hum then 
+        hum.WalkSpeed = getgenv().speedEnabled and getgenv().speedValue or 16
+    end
+end
 
 -- === PLAYER TAB ===
 local PlayerTab = Window:Tab({
@@ -206,6 +347,67 @@ PlayerTab:Toggle({
     end
 })
 
+PlayerTab:Toggle({
+    Title = "Speed Hack",
+    Default = false,
+    Callback = function(v)
+        getgenv().speedEnabled = v
+        if v then
+            speedLoop = RunService.Heartbeat:Connect(updateSpeed)
+        else
+            if speedLoop then
+                speedLoop:Disconnect()
+                speedLoop = nil
+            end
+            updateSpeed()
+        end
+    end
+})
+
+PlayerTab:Slider({
+    Title = "Speed Value",
+    Value = {Min = 16, Max = 600, Default = 16},
+    Step = 1,
+    Callback = function(val)
+        getgenv().speedValue = val
+        updateSpeed()
+    end
+})
+
+PlayerTab:Slider({
+    Title = "Altura De Salto",
+    Step = 1,
+    Value = { Min = 50, Max = 500, Default = 50 },
+    Callback = function(value)
+        env.Jumppower = value
+        if env.Hum then pcall(function() env.Hum.JumpPower = value end) end
+    end
+})
+
+PlayerTab:Toggle({
+    Title = "Salto Auto",
+    Icon = "repeat",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        env.KeepJumppower = state
+        if state then
+            spawn(function()
+                while env.KeepJumppower do
+                    if env.Hum and env.Jumppower then
+                        pcall(function()
+                            if env.Hum.JumpPower ~= env.Jumppower then
+                                env.Hum.JumpPower = env.Jumppower
+                            end
+                        end)
+                    end
+                    task.wait(0.2)
+                end
+            end)
+        end
+    end
+})
+
 -- Fake Dead Animation
 PlayerTab:Toggle({
     Title = "Muerte falso",
@@ -259,11 +461,11 @@ local murderParagraph = EspTab:Paragraph({
 task.defer(function()
     pcall(function()
         if sheriffParagraph and sheriffParagraph.Title then
-            sheriffParagraph.Title.TextSize = 20
+            sheriffParagraph.Title.TextSize = 25
             sheriffParagraph.Title.Font = Enum.Font.GothamBold
         end
         if murderParagraph and murderParagraph.Title then
-            murderParagraph.Title.TextSize = 20
+            murderParagraph.Title.TextSize = 25
             murderParagraph.Title.Font = Enum.Font.GothamBold
         end
     end)
@@ -357,7 +559,7 @@ RunService.Heartbeat:Connect(function()
     local sheriffColor = "Red"
     if sheriff then
         sheriffText = "Sheriff: " .. sheriff.Name
-        sheriffDesc = "Alive"
+        sheriffDesc = "Vivo"
         sheriffColor = "Blue"
     end
 
@@ -366,7 +568,7 @@ RunService.Heartbeat:Connect(function()
     local murderColor = "Red"
     if murderer then
         murderText = "Murderer: " .. murderer.Name
-        murderDesc = "Alive"
+        murderDesc = "Vivo"
         murderColor = "Red"
     end
 
@@ -718,7 +920,7 @@ CombatTab:Toggle({
                 local Button = Instance.new("TextButton", GunGui)
                 Button.Size = UDim2.new(0, 86, 0, 45)
                 Button.Position = UDim2.new(0, 833, 0.455, -163)
-                Button.BackgroundTransparency = 0.2
+                Button.BackgroundTransparency = 0.5
                 Button.BackgroundColor3 = Color3.fromRGB(44, 44, 45)
                 Button.Text = "Shoot Murder"
                 Button.TextColor3 = Color3.new(1, 1, 1)
@@ -807,15 +1009,15 @@ CombatTab:Toggle({
                             gun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(unpack(args))
                             
                             WindUI:Notify({
-                                Title = "Shot Fired",
-                                Content = "Fired ahead of " .. murder.Name,
+                                Title = "Disparo",
+                                Content = "Disparo a" .. murder.Name,
                                 Duration = 3
                             })
                         end
                     else
                         WindUI:Notify({
                             Title = "Error",
-                            Content = "No player holding Knife found!",
+                            Content = "No Hay Jugador Con arma!",
                             Duration = 3
                         })
                     end
@@ -1210,16 +1412,7 @@ CombatTab:Slider({
     end
 })
 
-CombatTab:Button({
-    Title = "Equipar Cuchillo", 
-    Callback = function()
-        if equipKnife() then
-            WindUI:Notify({Title = "Cuchillo", Content = "Cuchillo Equipado!", Icon = "check-circle", Duration = 2})
-        else
-            WindUI:Notify({Title = "Cuchillo", Content = "No se encontró Cuchillo!", Icon = "x-circle", Duration = 2})
-        end
-    end
-})
+
 
 -- === AUTO FARM TAB ===
 local FarmTab = Window:Tab({
@@ -2512,13 +2705,13 @@ game:GetService("UserInputService").WindowFocused:Connect(function()
 end)
 
 -- === CUSTOMIZATION TAB ===
-local CustomizationTab = Window:Tab({
+local CustomTab = Window:Tab({
     Title = "Customización",
     Icon = "palette",
     Locked = false,
 })
 
-CustomizationTab:Toggle({
+CustomTab:Toggle({
     Title = "Transparencia de menu",
     Icon = "eye",
     Type = "Checkbox",
@@ -2533,4 +2726,87 @@ CustomizationTab:Toggle({
             })
         end)
     end
+})
+
+-- Anti-AFK mejorado para WindUI 1.6.6
+local AntiAFK = {
+    Enabled = false,
+    Connection = nil,
+    VirtualUser = game:GetService("VirtualUser"),
+    Player = game:GetService("Players").LocalPlayer
+}
+
+function AntiAFK:Start()
+    if self.Enabled then return end
+    
+    self.Enabled = true
+    
+    -- Desconectar conexiones existentes de Idled
+    for _, conn in pairs(getconnections(self.Player.Idled)) do
+        conn:Disable()
+    end
+    
+    -- Crear nueva conexión anti-afk
+    self.Connection = self.Player.Idled:Connect(function()
+        self.VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+        task.wait(1)
+        self.VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    end)
+    
+    WindUI:Notify({
+        Title = "Anti-AFK",
+        Content = "Anti-AFK activado",
+        Duration = 2
+    })
+end
+
+function AntiAFK:Stop()
+    if not self.Enabled then return end
+    
+    self.Enabled = false
+    
+    -- Desconectar la conexión
+    if self.Connection then
+        self.Connection:Disconnect()
+        self.Connection = nil
+    end
+    
+    -- Volver a habilitar las conexiones originales (opcional)
+    for _, conn in pairs(getconnections(self.Player.Idled)) do
+        conn:Enable()
+    end
+    
+    WindUI:Notify({
+        Title = "Anti-AFK", 
+        Content = "Anti-AFK desactivado",
+        Duration = 2
+    })
+end
+
+function AntiAFK:Toggle()
+    if self.Enabled then
+        self:Stop()
+    else
+        self:Start()
+    end
+end
+
+-- Añadir toggle a WindUI
+CustomTab:Toggle({
+    Title = "Anti-AFK",
+    Icon = "shield",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        if state then
+            AntiAFK:Start()
+        else
+            AntiAFK:Stop()
+        end
+    end
+})
+
+CustomTab:Paragraph({
+    Title = "Anti-AFK System",
+    Content = "Previene que te desconectes por inactividad"
 })
