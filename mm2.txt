@@ -78,137 +78,154 @@ local shootMurderHotkey = "F"
 local shootMurderEnabled = false
 local shootMurderConnection = nil
 
--- Función de disparar al murderer
+-- Función de disparar al murderer (Mejorada - Copia del botón de Combate sin GUI)
 local function shootMurder()
-    print("🔫 Función shootMurder ejecutándose...")
-    
-    -- Primero equipar el arma automáticamente
-    local localPlayer = game.Players.LocalPlayer
-    local character = localPlayer.Character or localPlayer.CharacterAdded:Wait()
-    
-    -- Buscar y equipar el arma automáticamente
-    local gun = localPlayer.Backpack:FindFirstChild("Gun") or character:FindFirstChild("Gun")
-    if gun and gun:IsA("Tool") then
-        print("✅ Arma encontrada, equipando...")
-        local humanoid = character:FindFirstChildOfClass("Humanoid")
-        if humanoid then
-            humanoid:EquipTool(gun)
-            task.wait(0.1)
-        end
-    else
-        WindUI:Notify({
-            Title = "Error",
-            Content = "No tienes arma",
-            Duration = 3
-        })
-        print("❌ No se encontró arma")
-        return
-    end
-
-    -- Buscar al murderer
+    print("🔫 Función shootMurder (PC) ejecutándose...")
+    -- 🔍 Detectar quién tiene Knife
     local murder = nil
-    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-        if player ~= localPlayer then
+    for _, player in ipairs(Players:GetPlayers()) do -- Usar Players global para consistencia
+        if player ~= LocalPlayer then -- Asegurar que no sea el jugador local
             local hasKnife = false
-
+            -- Verificar en Backpack
             if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
                 hasKnife = true
             end
-
+            -- Verificar en Character
             if player.Character and player.Character:FindFirstChild("Knife") then
                 hasKnife = true
             end
-
             if hasKnife then
                 murder = player
-                break
+                print("✅ Murderer encontrado: " .. player.Name)
+                break -- Salir del bucle una vez encontrado
             end
         end
     end
 
-    if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
-        print("✅ Murderer encontrado: " .. murder.Name)
-        local hrp = murder.Character.HumanoidRootPart
-        local murderPos = hrp.Position
-
-        -- Cálculo de lead shot (igual que Fluent)
-        local velocity = hrp.Velocity
-        local pingMs = 0
-        local stats = game:GetService("Stats")
-        if stats:FindFirstChild("Network") and stats.Network:FindFirstChild("ServerStatsItem") then
-            local pingStat = stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
-            if pingStat then
-                pingMs = pingStat:GetValue()
-            end
-        end
-        local pingSec = math.clamp(pingMs / 1000, 0, 1)
-        local leadOffset = velocity * pingSec
-
-        if velocity.Magnitude < 2 then
-            leadOffset = Vector3.new(0, 0, 0)
-        end
-
-        local targetPos = murderPos + leadOffset
-        local args = {
-            1,
-            Vector3.new(targetPos.X, targetPos.Y, targetPos.Z),
-            "AH2"
-        }
-
-        -- Ejecutar disparo
-        local equippedGun = character:FindFirstChild("Gun")
-        if equippedGun then
-            local knifeLocal = equippedGun:FindFirstChild("KnifeLocal")
-            if knifeLocal then
-                local createBeam = knifeLocal:FindFirstChild("CreateBeam")
-                if createBeam then
-                    local remoteFunction = createBeam:FindFirstChild("RemoteFunction")
-                    if remoteFunction then
-                        remoteFunction:InvokeServer(unpack(args))
-                        WindUI:Notify({
-                            Title = "Disparo PC",
-                            Content = "Disparado a " .. murder.Name,
-                            Duration = 3
-                        })
-                        return
-                    end
-                end
-            end
-        end
-        
+    if not murder or not murder.Character or not murder.Character:FindFirstChild("HumanoidRootPart") then
         WindUI:Notify({
-            Title = "Error",
-            Content = "Problema con el arma",
+            Title = "Error (PC)",
+            Content = "No se encontró Asesino!",
             Duration = 3
         })
-    else
+        print("❌ No se encontró Asesino o está muerto.")
+        return -- Salir si no se encuentra
+    end
+
+    print("🎯 Objetivo: " .. murder.Name)
+
+    local char = LocalPlayer.Character
+    if not char then
         WindUI:Notify({
-            Title = "Error",
-            Content = "No se encontró Asesino!",
+            Title = "Error (PC)",
+            Content = "Tu personaje no está cargado.",
+            Duration = 3
+        })
+        print("❌ Tu personaje no está cargado.")
+        return
+    end
+
+    -- 🔄 EQUIPAR ARMA AUTOMÁTICAMENTE
+    local gun = char:FindFirstChild("Gun") or LocalPlayer.Backpack:FindFirstChild("Gun")
+    if not gun then
+        WindUI:Notify({
+            Title = "Error (PC)",
+            Content = "No tienes el arma!",
+            Duration = 3
+        })
+        print("❌ No tienes el arma.")
+        return
+    end
+
+    -- Equipar el arma si está en el backpack
+    if gun.Parent == LocalPlayer.Backpack then
+        print("📦 Equipando arma desde Backpack...")
+        gun.Parent = char
+        task.wait(0.05) -- Pequeño delay para asegurar el parentizado
+    end
+
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        print(" equipando...")
+        hum:EquipTool(gun)
+        task.wait(0.1) -- Pequeño delay para asegurar el equipamiento
+    else
+        print("⚠️ No se encontró Humanoid en tu personaje.")
+    end
+
+    -- 🎯 Cálculo de predicción (Lead Shot - Copia del botón de Combate)
+    local hrp = murder.Character.HumanoidRootPart
+    local murderPos = hrp.Position
+    local velocity = hrp.Velocity
+
+    -- Obtener ping
+    local pingMs = 0
+    local stats = game:GetService("Stats")
+    if stats:FindFirstChild("Network") and stats.Network:FindFirstChild("ServerStatsItem") then
+        local pingStat = stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+        if pingStat then
+            pingMs = pingStat:GetValue()
+        end
+    end
+    local pingSec = math.clamp(pingMs / 1000, 0, 1) -- Limitar el ping a 1 segundo como máximo
+
+    -- Calcular offset de predicción
+    local leadOffset = velocity * pingSec
+    if velocity.Magnitude < 2 then
+        leadOffset = Vector3.new(0, 0, 0) -- Si se mueve muy poco, no aplicar offset
+    end
+    local targetPos = murderPos + leadOffset
+    print("📍 Posición objetivo (Lead): " .. tostring(targetPos))
+
+    local args = {1, Vector3.new(targetPos.X, targetPos.Y, targetPos.Z), "AH2"}
+
+    -- Ejecutar disparo
+    local currentGun = char:FindFirstChild("Gun") -- Usar la referencia actualizada del arma en el character
+    if currentGun and currentGun:FindFirstChild("KnifeLocal") and currentGun.KnifeLocal:FindFirstChild("CreateBeam") then
+        local remoteFunction = currentGun.KnifeLocal.CreateBeam.RemoteFunction
+        if remoteFunction then
+            print("🎯 Disparando a " .. murder.Name)
+            remoteFunction:InvokeServer(unpack(args))
+            WindUI:Notify({
+                Title = "Disparo PC",
+                Content = "Disparado a " .. murder.Name,
+                Duration = 3
+            })
+        else
+            print("❌ No se encontró RemoteFunction para disparar.")
+            WindUI:Notify({
+                Title = "Error (PC)",
+                Content = "Fallo al disparar (Remote).",
+                Duration = 3
+            })
+        end
+    else
+        print("❌ No se encontró el arma equipada o sus componentes para disparar.")
+        WindUI:Notify({
+            Title = "Error (PC)",
+            Content = "Fallo al disparar (Arma).",
             Duration = 3
         })
     end
 end
 
--- Configurar hotkey de PC
+-- Configurar hotkey de PC (Igual que antes)
 local function setupPCHotkey()
     if shootMurderConnection then
         shootMurderConnection:Disconnect()
     end
-    
     shootMurderConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
         if gameProcessed then return end
-        
         if input.KeyCode == Enum.KeyCode[shootMurderHotkey] and shootMurderEnabled then
-            shootMurder()
+            shootMurder() -- Llamar a la nueva función mejorada
         end
     end)
 end
 
--- Configuración inicial
+-- Configuración inicial (Igual que antes)
 setupPCHotkey()
 
--- Toggle para activar/desactivar el hotkey de PC
+-- Toggle para activar/desactivar el hotkey de PC (Igual que antes)
 MiscTab:Toggle({
     Title = "Disparar Asesino (PC - Teclado)",
     Icon = "keyboard",
@@ -224,7 +241,7 @@ MiscTab:Toggle({
             })
         else
             WindUI:Notify({
-                Title = "Hotkey PC Desactivado", 
+                Title = "Hotkey PC Desactivado",
                 Content = "Tecla " .. shootMurderHotkey .. " deshabilitada",
                 Duration = 2
             })
@@ -232,7 +249,7 @@ MiscTab:Toggle({
     end
 })
 
--- Input para cambiar la tecla (sin Keybind que interfiera)
+-- Input para cambiar la tecla (Igual que antes)
 MiscTab:Input({
     Title = "Cambiar Tecla Disparo PC",
     Icon = "key",
@@ -243,9 +260,8 @@ MiscTab:Input({
             local newKey = string.upper(string.sub(text, 1, 1))
             shootMurderHotkey = newKey
             setupPCHotkey()
-            
             WindUI:Notify({
-                Title = "Tecla Actualizada", 
+                Title = "Tecla Actualizada",
                 Content = "Tecla de disparo: " .. newKey,
                 Duration = 3
             })
@@ -364,6 +380,151 @@ PlayerTab:Toggle({
     end
 })
 
+-- === Auto Noclip + Animación cuando asesino está cerca ===
+local murderNearActive = false
+local murderNearAnimTrack = nil
+local murderNearNoclipLoop = nil
+
+local function loadNearAnimation()
+    if not env.Char then return end
+    local humanoid = env.Char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if not animator then return end
+
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://127212897044971"
+    murderNearAnimTrack = animator:LoadAnimation(anim)
+end
+
+local function startNearAnimationAndNoclip()
+    -- Cargar y reproducir animación
+    if not murderNearAnimTrack then
+        loadNearAnimation()
+    end
+    if murderNearAnimTrack then
+        murderNearAnimTrack:Play()
+        murderNearAnimTrack.Looped = true
+    end
+
+    -- Activar Noclip temporal
+    env.Noclip = true
+    if murderNearNoclipLoop then return end
+    murderNearNoclipLoop = spawn(function()
+        while env.Noclip and murderNearActive do
+            if env.Char then
+                for _, part in ipairs(env.Char:GetDescendants()) do
+                    if part:IsA("BasePart") then 
+                        part.CanCollide = false 
+                    end
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
+local function stopNearAnimationAndNoclip()
+    -- Detener animación
+    if murderNearAnimTrack then
+        murderNearAnimTrack:Stop()
+        murderNearAnimTrack:Destroy()
+        murderNearAnimTrack = nil
+    end
+
+    -- Desactivar Noclip temporal
+    env.Noclip = false
+    if murderNearNoclipLoop then
+        murderNearNoclipLoop = nil
+    end
+
+    -- Restaurar colisiones
+    if env.Char then
+        for _, part in ipairs(env.Char:GetDescendants()) do
+            if part:IsA("BasePart") then 
+                part.CanCollide = true 
+            end
+        end
+    end
+end
+
+-- Función para detectar si el asesino está cerca
+local function isMurdererNear()
+    local localRoot = env.Root
+    if not localRoot then return false end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local hasKnife = false
+            if player.Backpack and player.Backpack:FindFirstChild("Knife") then
+                hasKnife = true
+            end
+            if player.Character:FindFirstChild("Knife") then
+                hasKnife = true
+            end
+
+            if hasKnife then
+                local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+                if targetRoot then
+                    local dist = (localRoot.Position - targetRoot.Position).Magnitude
+                    if dist <= 20 then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+-- Conección principal que verifica cada frame
+local murderNearConnection = nil
+
+PlayerTab:Toggle({
+    Title = "Ocultar Auto",
+    Icon = "repeat",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        murderNearActive = state
+
+        if state then
+            -- Iniciar verificación continua
+            if not murderNearConnection then
+                murderNearConnection = RunService.Heartbeat:Connect(function()
+                    if not murderNearActive then return end
+                    if isMurdererNear() then
+                        if not env.Noclip then
+                            startNearAnimationAndNoclip()
+                        end
+                    else
+                        if env.Noclip then
+                            stopNearAnimationAndNoclip()
+                        end
+                    end
+                end)
+            end
+            WindUI:Notify({
+                Title = "Asesino Cerca",
+                Content = "Activado: ESCONDIÉNDOSE",
+                Duration = 4
+            })
+        else
+            -- Detener todo
+            if murderNearConnection then
+                murderNearConnection:Disconnect()
+                murderNearConnection = nil
+            end
+            stopNearAnimationAndNoclip()
+            WindUI:Notify({
+                Title = "Asesino Cerca",
+                Content = "Desactivado",
+                Duration = 2
+            })
+        end
+    end
+})
+
 PlayerTab:Toggle({
     Title = "Speed Hack",
     Default = false,
@@ -421,6 +582,62 @@ PlayerTab:Toggle({
                     task.wait(0.2)
                 end
             end)
+        end
+    end
+})
+
+PlayerTab:Toggle({
+    Title = "Esconderse",
+    Icon = "skull",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            -- === Activar animación ===
+            local anim = Instance.new("Animation")
+            anim.AnimationId = "rbxassetid://127212897044971"
+            local track = env.Hum:LoadAnimation(anim)
+            env.HideTrack = track
+            track:Play()
+            track.Looped = true
+
+            -- === Activar Noclip ===
+            env.HideNoclip = true
+            spawn(function()
+                while env.HideNoclip do
+                    if env.Char then
+                        for _, part in ipairs(env.Char:GetDescendants()) do
+                            if part:IsA("BasePart") then 
+                                part.CanCollide = false 
+                            end
+                        end
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        else
+            -- === Detener animación ===
+            if env.HideTrack then
+                env.HideTrack:Stop()
+                env.HideTrack:Destroy()
+                env.HideTrack = nil
+            end
+
+            -- === Desactivar Noclip ===
+            env.HideNoclip = false
+            if env.Char then
+                for _, part in ipairs(env.Char:GetDescendants()) do
+                    if part:IsA("BasePart") then 
+                        part.CanCollide = true 
+                    end
+                end
+            end
+
+            -- === Teletransportar ligeramente arriba para evitar quedar bajo el piso ===
+            if env.Root then
+                local newPos = env.Root.Position + Vector3.new(0, 5, 0)
+                env.Root.CFrame = CFrame.new(newPos, newPos + env.Root.CFrame.LookVector)
+            end
         end
     end
 })
