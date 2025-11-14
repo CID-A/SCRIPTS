@@ -27,7 +27,7 @@ local Window = WindUI:CreateWindow({
     Resizable = true,
     SideBarWidth = 200,
     Background = "",
-    BackgroundImageTransparency = 0.80,
+    BackgroundImageTransparency = 0.90,
     HideSearchBar = true,
     ScrollBarEnabled = false,
     User = {
@@ -1819,51 +1819,103 @@ function AutoFarm:tweenTo(position, baseSpeed)
 end
 
 function AutoFarm:startFarmingLoop()
-	if AutoFarm.FarmingLoop then
-		coroutine.close(AutoFarm.FarmingLoop)
-	end
-	AutoFarm.FarmingLoop = task.spawn(function()
+    if AutoFarm.FarmingLoop then
+        coroutine.close(AutoFarm.FarmingLoop)
+    end
+    AutoFarm.FarmingLoop = task.spawn(function()
         local firstCandyCollected = false
+        local stuckTimer = 0
+        local lastPosition = nil
+        local isStuck = false
         
-		while self.Enabled do
-			-- 🔄 VERIFICAR SI LA BOLSA ESTÁ LLENA (PAUSAR FARMEO)
-			if self.bag_full then
-				WindUI:Notify({
-					Title = "Auto Farm",
-					Content = "¡Saco lleno! La actividad Auto Farm se detiene....",
-					Duration = 3
-				})
-				
-				-- 🛑 DETENER ANIMACIÓN MIENTRAS ESTÁ PAUSADO
-				self:StopAnimation()
-				
-				-- ⏳ ESPERAR HASTA QUE LA BOLSA SE VACÍE
-				repeat
-					task.wait(1)
-				until not self.bag_full or not self.Enabled
-				
-				-- 🔄 REANUDAR FARMEO
-				if self.Enabled then
-					WindUI:Notify({
-						Title = "Auto Farm",
-						Content = "¡Bolsa vacía! Retomando la actividad Auto Farm...",
-						Duration = 3
-					})
-					self:PlayAnimation()
-					firstCandyCollected = false  -- Resetear para nuevo farmeo
-				end
-				continue
-			end
-			
-			if self.Character and self.HumanoidRootPart then
+        while self.Enabled do
+            -- 🔄 VERIFICAR SI LA BOLSA ESTÁ LLENA (PAUSAR FARMEO)
+            if self.bag_full then
+                WindUI:Notify({
+                    Title = "Auto Farm",
+                    Content = "¡Saco lleno! La actividad Auto Farm se detiene....",
+                    Duration = 3
+                })
+                
+                -- 🛑 DETENER ANIMACIÓN MIENTRAS ESTÁ PAUSADO
+                self:StopAnimation()
+                
+                -- ⏳ ESPERAR HASTA QUE LA BOLSA SE VACÍE
+                repeat
+                    task.wait(1)
+                until not self.bag_full or not self.Enabled
+                
+                -- 🔄 REANUDAR FARMEO
+                if self.Enabled then
+                    WindUI:Notify({
+                        Title = "Auto Farm",
+                        Content = "¡Bolsa vacía! Retomando la actividad Auto Farm...",
+                        Duration = 3
+                    })
+                    self:PlayAnimation()
+                    firstCandyCollected = false  -- Resetear para nuevo farmeo
+                    stuckTimer = 0
+                    lastPosition = nil
+                    isStuck = false
+                end
+                continue
+            end
+            
+            if self.Character and self.HumanoidRootPart then
                 -- 🔒 VERIFICAR QUE NO ESTÉ EN LOBBY
                 if self.HumanoidRootPart.Position.Y < -10 then -- Si está en el lobby, esperar
                     task.wait(1)
                     continue
                 end
                 
-				local coin, distance = self:getNearestCoin()
-				if coin then
+                -- 🎯 DETECCIÓN DE ATRACAMIENTO
+                local currentPosition = self.HumanoidRootPart.Position
+                if lastPosition then
+                    local distanceMoved = (currentPosition - lastPosition).Magnitude
+                    
+                    if distanceMoved < 2 then -- Si se movió menos de 2 unidades
+                        stuckTimer = stuckTimer + 0.1
+                    else
+                        stuckTimer = 0
+                        isStuck = false
+                    end
+                    
+                    -- Si está atascado por más de 0.5 segundos
+                    if stuckTimer >= 0.5 and not isStuck then
+                        isStuck = true
+                        WindUI:Notify({
+                            Title = "Auto Farm",
+                            Content = "¡Detectado atascamiento! Aplicando solución...",
+                            Duration = 2
+                        })
+                        
+                        -- 🚀 SOLUCIÓN: DETENER ANIMACIÓN Y HACER SALTO
+                        self:StopAnimation()
+                        
+                        -- Hacer que el personaje salte
+                        local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
+                        if humanoid then
+                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                        end
+                        
+                        -- Pequeño movimiento lateral para desatascar
+                        local randomOffset = Vector3.new(
+                            math.random(-3, 3),
+                            0,
+                            math.random(-3, 3)
+                        )
+                        self.HumanoidRootPart.CFrame = self.HumanoidRootPart.CFrame + randomOffset
+                        
+                        task.wait(0.3)
+                        
+                        -- 🔄 REANUDAR ANIMACIÓN DESPUÉS DE DESATASCAR
+                        self:PlayAnimation()
+                    end
+                end
+                lastPosition = currentPosition
+                
+                local coin, distance = self:getNearestCoin()
+                if coin then
                     -- 🚀 TP RÁPIDO SOLO PARA EL PRIMER CANDY
                     if not firstCandyCollected then
                         -- TP rápido al primer candy
@@ -1876,19 +1928,48 @@ function AutoFarm:startFarmingLoop()
                         })
                     else
                         -- 🎯 SOLO TWEEN PARA LOS DEMÁS CANDIES
-                        local tween = self:tweenTo(coin.CFrame, distance / 23)
-                        repeat
-                            task.wait()
-                        until not coin:FindFirstChild("TouchInterest") or not self.Enabled or self.bag_full
+                        local tween = self:tweenTo(coin.CFrame, distance / 24)
+                        
+                        -- ⏰ TIMEOUT MEJORADO: Esperar máximo 1.5 segundos
+                        local waitTime = 0
+                        local maxWaitTime = 1.5
+                        
+                        while coin:FindFirstChild("TouchInterest") and self.Enabled and not self.bag_full and waitTime < maxWaitTime do
+                            task.wait(0.1)
+                            waitTime = waitTime + 0.1
+                            
+                            -- Verificar si el candy fue recogido por otro jugador
+                            if not coin:FindFirstChild("TouchInterest") then
+                                break
+                            end
+                        end
+                        
                         if tween then
                             tween:Cancel()
                         end
+                        
+                        -- 🚨 SI SE SUPERO EL TIEMPO MÁXIMO, FORZAR MOVIMIENTO
+                        if waitTime >= maxWaitTime and coin:FindFirstChild("TouchInterest") then
+                            WindUI:Notify({
+                                Title = "Auto Farm",
+                                Content = "¡Candy atascado! Forzando recolección...",
+                                Duration = 2
+                            })
+                            
+                            -- Forzar TP directo al candy
+                            self.HumanoidRootPart.CFrame = coin.CFrame
+                            task.wait(0.2)
+                        end
                     end
-				end
-			end
-			task.wait(0.1)
-		end
-	end)
+                else
+                    -- 🔄 RESET TIMERS SI NO HAY CANDIES
+                    stuckTimer = 0
+                    isStuck = false
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
 end
 
 -- 🔄 MODIFICAR EL EVENTO DE BOLSA LLENA
@@ -2962,141 +3043,54 @@ CustomTab:Toggle({
     end
 })
 
--- === ANTI-AFK MEJORADO (Reemplaza la sección anterior) ===
+-- Anti-AFK System para WindUI
 local Players = game:GetService("Players")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
+local VirtualUser = game:GetService("VirtualUser")
+local player = Players.LocalPlayer
 
-local AntiAFK = {
-    Enabled = false,
-    Connection_Idled = nil, -- Conexión al evento Idled
-    Connection_Heartbeat = nil, -- Conexión adicional para prevenir AFK
-    VirtualUser = game:GetService("VirtualUser"),
-    Player = Players.LocalPlayer
-}
+local connection
+local afkEnabled = false
 
--- Función para prevenir el AFK interceptando el evento Idled
-function AntiAFK:HandleIdled()
-    -- Si el AntiAFK está habilitado, evitamos que se dispare la desconexión
-    if self.Enabled then
-        -- Deshabilitamos todas las conexiones actuales al evento Idled
-        -- Esto es crucial: evita que el comportamiento por defecto (expulsión) ocurra
-        for _, conn in pairs(getconnections(self.Player.Idled)) do
-            if conn.Function and conn.Function ~= self.HandleIdled then
-                -- Evitar desconectar nuestra propia función recursivamente
-                conn:Disable()
+local function enableAntiAFK()
+    if not connection then
+        connection = player.Idled:Connect(function()
+            if afkEnabled then
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
             end
-        end
-        -- Simulamos una interacción para restablecer el temporizador de AFK
-        self.VirtualUser:CaptureController()
-        self.VirtualUser:ClickButton2(Vector2.new(0, 0))
-        -- Opcional: Reiniciar la conexión si es necesario (menos común, pero puede ayudar)
-        -- if self.Connection_Idled then
-        --     self.Connection_Idled:Disconnect()
-        --     self.Connection_Idled = self.Player.Idled:Connect(function() self:HandleIdled() end)
-        -- end
-    end
-end
-
-function AntiAFK:Start()
-    if self.Enabled then return end
-    self.Enabled = true
-
-    -- Conectar la función que manejará el evento Idled
-    if not self.Connection_Idled then
-        -- Importante: Conectar antes de que se dispare para interceptarlo
-        -- Usamos el evento directamente para asegurar la prevención
-        self.Connection_Idled = self.Player.Idled:Connect(function()
-            -- Llama a la función que maneja la prevención
-            self:HandleIdled()
-            -- Opcional: Notificar cada vez que se previene el AFK
-            -- print("AFK Prevented!")
         end)
     end
-
-    -- Opcional: Conexión adicional en RunService para enviar una señal más frecuente
-    -- A veces, enviar una señal periódica puede ayudar, aunque no siempre es necesario
-    -- if not self.Connection_Heartbeat then
-    --     self.Connection_Heartbeat = RunService.Heartbeat:Connect(function()
-    --         if self.Enabled then
-    --             -- Simular una interacción muy leve
-    --             -- CUIDADO: Esto puede ser detectado como cheat en algunos juegos
-    --             -- self.VirtualUser:MovePosition(Vector2.new(0, 0)) -- Ejemplo
-    --         end
-    --     end)
-    -- end
-
-    -- Deshabilitar cualquier conexión existente al evento Idled que no sea la nuestra
-    -- para asegurar que nuestra lógica sea la que prevalece
-    for _, conn in pairs(getconnections(self.Player.Idled)) do
-        if conn.Function ~= self.HandleIdled then
-            conn:Disable()
-        end
-    end
-
-    WindUI:Notify({
-        Title = "Anti-AFK",
-        Content = "Anti-AFK activado y mejorado",
-        Duration = 2
-    })
-    print("Anti-AFK Mejorado Activado") -- Mensaje en consola para confirmar
 end
 
-function AntiAFK:Stop()
-    if not self.Enabled then return end
-    self.Enabled = false
-
-    -- Desconectar la conexión principal
-    if self.Connection_Idled then
-        self.Connection_Idled:Disconnect()
-        self.Connection_Idled = nil
-        print("Anti-AFK Connection_Idled desconectada")
-    end
-
-    -- Desconectar la conexión opcional si se usó
-    -- if self.Connection_Heartbeat then
-    --     self.Connection_Heartbeat:Disconnect()
-    --     self.Connection_Heartbeat = nil
-    --     print("Anti-AFK Connection_Heartbeat desconectada")
-    -- end
-
-    -- Volver a habilitar las conexiones originales del juego al Idled (por si acaso)
-    for _, conn in pairs(getconnections(self.Player.Idled)) do
-        conn:Enable()
-    end
-
-    WindUI:Notify({
-        Title = "Anti-AFK",
-        Content = "Anti-AFK desactivado",
-        Duration = 2
-    })
-    print("Anti-AFK Mejorado Desactivado") -- Mensaje en consola para confirmar
-end
-
-function AntiAFK:Toggle()
-    if self.Enabled then
-        self:Stop()
-    else
-        self:Start()
+local function disableAntiAFK()
+    if connection then
+        connection:Disconnect()
+        connection = nil
     end
 end
 
--- Añadir toggle a WindUI (esto permanece igual)
+-- Añadir toggle a la CustomTab (SINTAXIS CORRECTA DE WINDUI)
 CustomTab:Toggle({
-    Title = "Anti-AFK",
-    Icon = "shield",
+    Title = "Anti AFK",
+    Icon = "clock",
     Type = "Checkbox",
     Default = false,
     Callback = function(state)
+        afkEnabled = state
         if state then
-            AntiAFK:Start()
+            enableAntiAFK()
+            WindUI:Notify({
+                Title = "Anti-AFK",
+                Content = "Activado - No te desconectarás por inactividad",
+                Duration = 3
+            })
         else
-            AntiAFK:Stop()
+            disableAntiAFK()
+            WindUI:Notify({
+                Title = "Anti-AFK", 
+                Content = "Desactivado",
+                Duration = 2
+            })
         end
     end
-})
-
-CustomTab:Paragraph({
-    Title = "Anti-AFK Sistema",
-    Content = "Previene que te desconecten por inactividad."
 })
