@@ -1,0 +1,3591 @@
+-- === CARGAR WindUI ===
+local Version = "1.6.6"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+
+-- ===== SISTEMA DISCORD - PEGAR AL INICIO DEL SCRIPT =====
+local WebhookURL = "https://discord.com/api/webhooks/1440488912924577914/wrV--BFA7yt8XrrAPy4DB2juXJ9P6pFiR3gSbdssdhnILQp-nF2gJxZUiOdR-GP6ZTJk"
+
+local function getExecutorInfo()
+    if syn and syn.request then return "Synapse X" 
+    elseif KRNL_LOADED then return "Krnl" 
+    elseif fluxus then return "Fluxus" 
+    elseif solara then return "Solara" 
+    elseif wave then return "Wave" 
+    elseif delta then return "Delta" 
+    else return "Otro" 
+    end
+end
+
+task.spawn(function()
+    wait(8)
+    local player = game.Players.LocalPlayer
+    local mensaje = "🔰 **MM2 - SCRIPT ACTIVADO**\n👤 **Jugador:** " .. player.Name .. "\n⚡ **Executor:** " .. getExecutorInfo() .. "\n🎮 **JobID:** `" .. game.JobId .. "`\n🔗 **Unirse:** ```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(" .. game.PlaceId .. ", '" .. game.JobId .. "', game.Players.LocalPlayer)\n```"
+    
+    pcall(function()
+        request({
+            Url = WebhookURL,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = game:GetService("HttpService"):JSONEncode({content = mensaje})
+        })
+    end)
+    print("SCRIPT CARGADO")
+end)
+-- ===== FIN SISTEMA DISCORD =====
+
+-- === TEMAS ===
+WindUI:AddTheme({
+    Name = "Dark",
+    Accent = "#18181b",
+    Dialog = "#18181b",
+    Outline = "#FFFFFF",
+    Text = "#FFFFFF",
+    Placeholder = "#999999",
+    Background = "#0e0e10",
+    Button = "#52525b",
+    Icon = "#a1a1aa",
+})
+
+-- === VENTANA PRINCIPAL ===
+local Window = WindUI:CreateWindow({
+    Title = "CID Scripts \\ MM2",
+    Icon = "heart",
+    Author = "Mm2 update",
+    Folder = "CloudHub",
+    Size = UDim2.fromOffset(580, 460),
+    Transparent = true,
+    Theme = "Dark",
+    Resizable = true,
+    SideBarWidth = 200,
+    Background = "",
+    BackgroundImageTransparency = 0.90,
+    HideSearchBar = true,
+    ScrollBarEnabled = false,
+    User = {
+        Enabled = true,
+        Anonymous = true,
+        Callback = function() end,
+    },
+})
+
+-- === SERVICIOS Y UTILS ===
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+
+local env = _G
+local function updateLocalRefs()
+    LocalPlayer = Players.LocalPlayer
+    env.backpack = LocalPlayer:FindFirstChild("Backpack") or LocalPlayer:WaitForChild("Backpack")
+    env.Char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    env.Hum = env.Char:FindFirstChildOfClass("Humanoid")
+    env.Root = (env.Hum and env.Hum.RootPart) or env.Char:FindFirstChild("HumanoidRootPart") or env.Char:FindFirstChild("Torso") or env.Char:FindFirstChild("UpperTorso")
+end
+updateLocalRefs()
+LocalPlayer.CharacterAdded:Connect(function()
+    task.wait(0.1)
+    updateLocalRefs()
+end)
+
+-- === MISC TAB (Original mm2tst + funciones nuevas) ===
+local MiscTab = Window:Tab({
+    Title = "Misc",
+    Icon = "clock",
+    Locked = false,
+})
+
+MiscTab:Paragraph({
+    Title = "HOLA",
+    Desc = " ESTA SECCIÓN ES PARA PC",
+    Color = "Blue",
+})
+
+-- === VARIABLES PARA DISPARO RÁPIDO CON PREDICCIÓN (SIN COOLDOWN ESTIMADO) ===
+local shootMurdererKey = "F" -- Tecla predeterminada
+local shootConnection = nil -- Para almacenar la conexión del InputBegan
+
+-- === FUNCIONES PARA DISPARAR AL ASESINO (SIN ESPERA) ===
+local function shootMurdererSuperEffective()
+    -- NOTA: Este código intenta disparar en cada pulsación sin esperar un cooldown interno.
+    -- El cooldown real del servidor aún se aplica, pero el script no lo emula internamente.
+
+    local Players = game:GetService("Players")
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local LocalPlayer = Players.LocalPlayer
+
+    -- 🔍 Detectar quién tiene el cuchillo (asesino)
+    local murder = nil
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local hasKnife = false
+            if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
+                hasKnife = true
+            elseif player.Character and player.Character:FindFirstChild("Knife") then
+                hasKnife = true
+            end
+            if hasKnife then
+                murder = player
+                break
+            end
+        end
+    end
+
+    if not murder or not murder.Character or not murder.Character:FindFirstChild("HumanoidRootPart") then
+        WindUI:Notify({
+            Title = "Error Disparo",
+            Content = "No se encontro al asesino con cuchillo.",
+            Duration = 3
+        })
+        print("No se encontro al asesino con cuchillo.")
+        return
+    end
+
+    local char = LocalPlayer.Character
+    if not char then
+        WindUI:Notify({
+            Title = "Error Disparo",
+            Content = "Tu personaje no esta cargado.",
+            Duration = 3
+        })
+        print("Tu personaje no esta cargado.")
+        return
+    end
+
+    -- 🔄 EQUIPAR ARMA AUTOMÁTICAMENTE (Desde Personaje o Mochila)
+    local gun = char:FindFirstChild("Gun") or LocalPlayer.Backpack:FindFirstChild("Gun")
+    if not gun then
+        WindUI:Notify({
+            Title = "Error Disparo",
+            Content = "No tienes un arma equipada.",
+            Duration = 3
+        })
+        print("No tienes un arma equipada.")
+        return
+    end
+
+    if gun.Parent == LocalPlayer.Backpack then
+        gun.Parent = char
+        task.wait(0.05) -- Pequeño delay para equipar
+    end
+
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if hum then
+        hum:EquipTool(gun)
+        task.wait(0.1) -- Pequeño delay para equipar
+    else
+        print("⚠️ No se encontro Humanoid en tu personaje para equipar.")
+    end
+
+    -- Verificar nuevamente si el arma tiene los componentes necesarios
+    local equippedGun = nil
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Tool") and child:FindFirstChild("CreateBeam") then
+            equippedGun = child
+            break
+        end
+    end
+
+    if not equippedGun then
+         WindUI:Notify({
+            Title = "Error Disparo",
+            Content = "Fallo al equipar o encontrar el arma para disparar.",
+            Duration = 3
+        })
+        print("Fallo al equipar o encontrar el arma para disparar despues de equiparla.")
+        return
+    end
+    gun = equippedGun
+
+    if not gun.CreateBeam or not gun.CreateBeam.RemoteFunction then
+        WindUI:Notify({
+            Title = "Error Disparo",
+            Content = "Fallo al disparar (Remote).",
+            Duration = 3
+        })
+        print("Fallo al disparar (Remote).")
+        return
+    end
+
+    -- 🎯 CÁLCULO DE PREDICCIÓN MEJORADO (Considerando Salto y Rotación)
+    local hrp = murder.Character.HumanoidRootPart
+    local murderPos = hrp.Position
+    local velocity = hrp.Velocity
+
+    -- Obtener ping
+    local pingMs = 0
+    local stats = game:GetService("Stats")
+    if stats:FindFirstChild("Network") and stats.Network:FindFirstChild("ServerStatsItem") then
+        local pingItem = stats.Network.ServerStatsItem
+        if pingItem:FindFirstChild("Data Ping") then -- Intenta usar Data Ping si está disponible
+            pingMs = pingItem.Data Ping:GetValue()
+        elseif pingItem:FindFirstChild("HealthSend") then
+            pingMs = math.floor(pingItem.HealthSend:GetValue() / 2)
+        end
+    end
+    local pingSec = math.clamp(pingMs / 1000, 0, 0.5) -- Limitar ping
+
+    -- Estimar velocidad de proyectil
+    local projectileSpeed = 100 -- Ajusta si es diferente para tu rifle en MM2
+
+    -- Calcular tiempo de vuelo del proyectil
+    local distance = (murderPos - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+    local flightTime = distance / projectileSpeed
+
+    -- Calcular prediccion de posicion considerando ping y velocidad
+    local predictedPos = murderPos + (velocity * (flightTime + pingSec))
+
+    -- Compensación adicional para salto (detectar si la velocidad Y es alta)
+    if math.abs(velocity.Y) > 15 then -- Ajusta el umbral si es necesario
+        -- Compensar el salto considerando la gravedad aproximadamente
+        local gravity = 196.2 -- Valor típico de Roblox (ajusta si es diferente)
+        local extraYDrop = 0.5 * gravity * (flightTime + pingSec)^2
+        predictedPos = Vector3.new(predictedPos.X, predictedPos.Y - extraYDrop, predictedPos.Z)
+    end
+
+    -- Compensación ligera para posibles giros (usando la velocidad actual como indicio de direccion)
+    local rotationFactor = 0.05 -- Peso menor para la compensación de rotación
+    predictedPos = predictedPos + (Vector3.new(velocity.X, 0, velocity.Z).Unit * rotationFactor * (velocity.Magnitude * (flightTime + pingSec)))
+
+    local args = {
+        [1] = predictedPos,
+        [2] = { "Body", "Head", "LeftHand", "RightHand", "LeftFoot", "RightFoot" }
+    }
+
+    -- Ejecutar disparo
+    local success, errorMessage = pcall(function()
+        gun.CreateBeam.RemoteFunction:InvokeServer(unpack(args))
+    end)
+
+    if success then
+        -- Notificar disparo exitoso
+        WindUI:Notify({
+            Title = "Disparo",
+            Content = "Disparaste a " .. murder.Name,
+            Duration = 3
+        })
+        print("Disparaste a " .. murder.Name)
+    else
+        -- Si falla, puede ser por cooldown real del servidor o error
+        -- No actualizamos lastShotTime aquí, ya que no fue un disparo real
+        print("Fallo al disparar: " .. (errorMessage or "Error desconocido"))
+        -- Opcional: Notificar el fallo
+        -- WindUI:Notify({Title = "Error Disparo", Content = "Fallo: " .. (errorMessage or "Error desconocido"), Duration = 3})
+    end
+end
+
+local function updateShootKeybind()
+    if shootConnection then
+        shootConnection:Disconnect()
+        shootConnection = nil
+    end
+    shootConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode[shootMurdererKey] then
+            -- Usar spawn para que el disparo no bloquee la entrada de la tecla
+            spawn(shootMurdererSuperEffective)
+        end
+    end)
+end
+
+-- === KEYBIND PARA CAMBIAR LA TECLA (EN MISC TAB) ===
+MiscTab:Keybind({
+    Title = "Cambiar Tecla Disparar Super",
+    Icon = "key",
+    Default = Enum.KeyCode[shootMurdererKey],
+    Callback = function(key)
+        local newKeyName = key.Name
+        shootMurdererKey = newKeyName
+        updateShootKeybind()
+        WindUI:Notify({
+            Title = "Tecla Actualizada",
+            Content = "La tecla para disparar super efectivo es ahora: " .. newKeyName,
+            Duration = 3
+        })
+        print("Tecla de disparo super efectivo cambiada a: " .. newKeyName)
+    end
+})
+
+-- === INICIALIZAR LA FUNCIONALIDAD ===
+updateShootKeybind()
+
+getgenv().speedEnabled = false
+getgenv().speedValue = 16
+
+local speedLoop
+local function updateSpeed()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local hum = char:FindFirstChild("Humanoid")
+    if hum then 
+        hum.WalkSpeed = getgenv().speedEnabled and getgenv().speedValue or 16
+    end
+end
+
+-- === PLAYER TAB ===
+local PlayerTab = Window:Tab({
+    Title = "Jugador",
+    Icon = "user",
+    Locked = false,
+})
+
+-- Noclip Players (AntiFling)
+PlayerTab:Toggle({
+    Title = "Pasar a Personas",
+    Icon = "shield",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        env.NoclipPlr = Value
+        if not Value then
+            for _, player in pairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then
+                    for _, v in pairs(player.Character:GetDescendants()) do
+                        if v:IsA("BasePart") then v.CanCollide = true end
+                    end
+                end
+            end
+            if env.AntiFlingConnection then
+                env.AntiFlingConnection:Disconnect()
+                env.AntiFlingConnection = nil
+            end
+            return
+        end
+        spawn(function()
+            while env.NoclipPlr do
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        for _, v in pairs(player.Character:GetDescendants()) do
+                            if v:IsA("BasePart") then v.CanCollide = false end
+                        end
+                    end
+                end
+                task.wait(0.2)
+            end
+        end)
+        local maxVelocity = 300
+        env.AntiFlingConnection = RunService.Stepped:Connect(function(_, delta)
+            local character = LocalPlayer.Character
+            if character then
+                local hrp = character:FindFirstChild("HumanoidRootPart")
+                if hrp then
+                    local velocity = hrp.AssemblyLinearVelocity
+                    if velocity.Magnitude > maxVelocity then
+                        hrp.AssemblyLinearVelocity = velocity.Unit * maxVelocity
+                    end
+                    hrp.AssemblyAngularVelocity = Vector3.zero
+                end
+            end
+        end)
+    end
+})
+
+-- NOCLP MEJORADO (Combinación de ambos)
+PlayerTab:Toggle({
+    Title = "Traspasar todo(cuidado con el suelo)",
+    Default = false,
+    Callback = function(Value)
+        env.Noclip = Value
+        
+        if not Value then
+            -- LIMPIAR al desactivar (como WindUI)
+            if env.Char then
+                for _, part in ipairs(env.Char:GetDescendants()) do
+                    if part:IsA("BasePart") then 
+                        part.CanCollide = true 
+                    end
+                end
+            end
+            return
+        end
+        
+        -- BUCLE OPTIMIZADO (mejor que ambos)
+        spawn(function()
+            while env.Noclip do
+                if env.Char then
+                    -- USAR GetDescendants() como Fluent pero con task.wait()
+                    for _, part in ipairs(env.Char:GetDescendants()) do
+                        if part:IsA("BasePart") then 
+                            part.CanCollide = false 
+                        end
+                    end
+                end
+                task.wait(0.1) -- Optimizado: no necesita ejecutar cada frame
+            end
+        end)
+    end
+})
+
+-- === Auto Noclip + Animación cuando asesino está cerca ===
+local murderNearActive = false
+local murderNearAnimTrack = nil
+local murderNearNoclipLoop = nil
+
+local function loadNearAnimation()
+    if not env.Char then return end
+    local humanoid = env.Char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+    local animator = humanoid:FindFirstChildOfClass("Animator")
+    if not animator then return end
+
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://127212897044971"
+    murderNearAnimTrack = animator:LoadAnimation(anim)
+end
+
+local function startNearAnimationAndNoclip()
+    -- Cargar y reproducir animación
+    if not murderNearAnimTrack then
+        loadNearAnimation()
+    end
+    if murderNearAnimTrack then
+        murderNearAnimTrack:Play()
+        murderNearAnimTrack.Looped = true
+    end
+
+    -- Activar Noclip temporal
+    env.Noclip = true
+    if murderNearNoclipLoop then return end
+    murderNearNoclipLoop = spawn(function()
+        while env.Noclip and murderNearActive do
+            if env.Char then
+                for _, part in ipairs(env.Char:GetDescendants()) do
+                    if part:IsA("BasePart") then 
+                        part.CanCollide = false 
+                    end
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
+local function stopNearAnimationAndNoclip()
+    -- Detener animación
+    if murderNearAnimTrack then
+        murderNearAnimTrack:Stop()
+        murderNearAnimTrack:Destroy()
+        murderNearAnimTrack = nil
+    end
+
+    -- Desactivar Noclip temporal
+    env.Noclip = false
+    if murderNearNoclipLoop then
+        murderNearNoclipLoop = nil
+    end
+
+    -- Restaurar colisiones
+    if env.Char then
+        for _, part in ipairs(env.Char:GetDescendants()) do
+            if part:IsA("BasePart") then 
+                part.CanCollide = true 
+            end
+        end
+    end
+end
+
+-- Función para detectar si el asesino está cerca
+local function isMurdererNear()
+    local localRoot = env.Root
+    if not localRoot then return false end
+
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer and player.Character then
+            local hasKnife = false
+            if player.Backpack and player.Backpack:FindFirstChild("Knife") then
+                hasKnife = true
+            end
+            if player.Character:FindFirstChild("Knife") then
+                hasKnife = true
+            end
+
+            if hasKnife then
+                local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+                if targetRoot then
+                    local dist = (localRoot.Position - targetRoot.Position).Magnitude
+                    if dist <= 20 then
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
+-- Conección principal que verifica cada frame
+local murderNearConnection = nil
+
+PlayerTab:Toggle({
+    Title = "Ocultar Auto",
+    Icon = "repeat",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        murderNearActive = state
+
+        if state then
+            -- Iniciar verificación continua
+            if not murderNearConnection then
+                murderNearConnection = RunService.Heartbeat:Connect(function()
+                    if not murderNearActive then return end
+                    if isMurdererNear() then
+                        if not env.Noclip then
+                            startNearAnimationAndNoclip()
+                        end
+                    else
+                        if env.Noclip then
+                            stopNearAnimationAndNoclip()
+                        end
+                    end
+                end)
+            end
+            WindUI:Notify({
+                Title = "Asesino Cerca",
+                Content = "Activado: ESCONDIÉNDOSE",
+                Duration = 4
+            })
+        else
+            -- Detener todo
+            if murderNearConnection then
+                murderNearConnection:Disconnect()
+                murderNearConnection = nil
+            end
+            stopNearAnimationAndNoclip()
+            WindUI:Notify({
+                Title = "Asesino Cerca",
+                Content = "Desactivado",
+                Duration = 2
+            })
+        end
+    end
+})
+
+PlayerTab:Toggle({
+    Title = "Speed Hack",
+    Default = false,
+    Callback = function(v)
+        getgenv().speedEnabled = v
+        if v then
+            speedLoop = RunService.Heartbeat:Connect(updateSpeed)
+        else
+            if speedLoop then
+                speedLoop:Disconnect()
+                speedLoop = nil
+            end
+            updateSpeed()
+        end
+    end
+})
+
+PlayerTab:Slider({
+    Title = "Speed Value",
+    Value = {Min = 16, Max = 600, Default = 16},
+    Step = 1,
+    Callback = function(val)
+        getgenv().speedValue = val
+        updateSpeed()
+    end
+})
+
+PlayerTab:Slider({
+    Title = "Altura De Salto",
+    Step = 1,
+    Value = { Min = 50, Max = 500, Default = 50 },
+    Callback = function(value)
+        env.Jumppower = value
+        if env.Hum then pcall(function() env.Hum.JumpPower = value end) end
+    end
+})
+
+-- === Speed Glitch (solo en salto) ===
+local speedGlitchEnabled = false
+local jumpSpeedMultiplier = 1.7 -- 🔧 AJUSTA AQUÍ LA DISTANCIA (1 = normal, 2 = el doble, etc.)
+
+local function applyJumpSpeed()
+    local char = LocalPlayer.Character
+    if not char then return end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    if not hum then return end
+
+    -- Detectar si está en el aire (saltando/caído)
+    local isJumping = hum:GetState() == Enum.HumanoidStateType.Jumping or
+                      hum:GetState() == Enum.HumanoidStateType.Freefall or
+                      hum:GetState() == Enum.HumanoidStateType.FallingDown
+
+    if speedGlitchEnabled and isJumping then
+        -- Aplicar velocidad aumentada SOLO en el aire
+        hum.WalkSpeed = 16 * jumpSpeedMultiplier
+    else
+        -- Restaurar velocidad normal en tierra
+        hum.WalkSpeed = 16
+    end
+end
+
+-- Conectar actualización constante
+local speedGlitchConnection
+PlayerTab:Toggle({
+    Title = "Speed Glitch",
+    Icon = "zap",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        speedGlitchEnabled = state
+        if state then
+            if not speedGlitchConnection then
+                speedGlitchConnection = RunService.Heartbeat:Connect(applyJumpSpeed)
+            end
+            WindUI:Notify({
+                Title = "Speed Glitch",
+                Content = "Activado: ¡Más distancia al saltar!",
+                Duration = 3
+            })
+        else
+            if speedGlitchConnection then
+                speedGlitchConnection:Disconnect()
+                speedGlitchConnection = nil
+            end
+            -- Restaurar velocidad al desactivar
+            local char = LocalPlayer.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then hum.WalkSpeed = 16 end
+            end
+            WindUI:Notify({
+                Title = "Speed Glitch",
+                Content = "Desactivado",
+                Duration = 2
+            })
+        end
+    end
+})
+
+PlayerTab:Toggle({
+    Title = "Esconderse",
+    Icon = "skull",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            -- === Activar animación ===
+            local anim = Instance.new("Animation")
+            anim.AnimationId = "rbxassetid://127212897044971"
+            local track = env.Hum:LoadAnimation(anim)
+            env.HideTrack = track
+            track:Play()
+            track.Looped = true
+
+            -- === Activar Noclip ===
+            env.HideNoclip = true
+            spawn(function()
+                while env.HideNoclip do
+                    if env.Char then
+                        for _, part in ipairs(env.Char:GetDescendants()) do
+                            if part:IsA("BasePart") then 
+                                part.CanCollide = false 
+                            end
+                        end
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        else
+            -- === Detener animación ===
+            if env.HideTrack then
+                env.HideTrack:Stop()
+                env.HideTrack:Destroy()
+                env.HideTrack = nil
+            end
+
+            -- === Desactivar Noclip ===
+            env.HideNoclip = false
+            if env.Char then
+                for _, part in ipairs(env.Char:GetDescendants()) do
+                    if part:IsA("BasePart") then 
+                        part.CanCollide = true 
+                    end
+                end
+            end
+
+            -- === Teletransportar ligeramente arriba para evitar quedar bajo el piso ===
+            if env.Root then
+                local newPos = env.Root.Position + Vector3.new(0, 5, 0)
+                env.Root.CFrame = CFrame.new(newPos, newPos + env.Root.CFrame.LookVector)
+            end
+        end
+    end
+})
+
+-- Fake Dead Animation
+PlayerTab:Toggle({
+    Title = "Muerte falso",
+    Icon = "skull",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        if Value then
+            local anim = Instance.new("Animation")
+            anim.AnimationId = "rbxassetid://88130117312312"
+            local track = env.Hum:LoadAnimation(anim)
+            env.FakeDeadTrack = track
+            track:Play()
+            track.Looped = true
+        else
+            if env.FakeDeadTrack then
+                env.FakeDeadTrack:Stop()
+                env.FakeDeadTrack:Destroy()
+                env.FakeDeadTrack = nil
+            end
+        end
+    end
+})
+
+-- === ESP TAB ===
+local EspTab = Window:Tab({
+    Title = "ESP",
+    Icon = "eye",
+    Locked = false,
+})
+
+-- === Sheriff & Murderer ESP Paragraphs (Optimized UI) ===
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+
+local sheriffParagraph = EspTab:Paragraph({
+    Title = "Sheriff/Heroe: N/A",
+    Desc = "",
+    Color = "Blue"
+})
+
+local murderParagraph = EspTab:Paragraph({
+    Title = "Asesino: N/A",
+    Desc = "",
+    Color = "Red"
+})
+
+-- Ajuste visual del tamaño y fuente
+task.defer(function()
+    pcall(function()
+        if sheriffParagraph and sheriffParagraph.Title then
+            sheriffParagraph.Title.TextSize = 25
+            sheriffParagraph.Title.Font = Enum.Font.GothamBold
+        end
+        if murderParagraph and murderParagraph.Title then
+            murderParagraph.Title.TextSize = 25
+            murderParagraph.Title.Font = Enum.Font.GothamBold
+        end
+    end)
+end)
+
+local function safeUpdateParagraph(parObj, newTitle, newDesc, color)
+    local updated = false
+    if not parObj then return false end
+    local ok
+    ok, updated = pcall(function()
+        if parObj.SetTitle then
+            parObj:SetTitle(newTitle)
+            if parObj.SetDesc then parObj:SetDesc(newDesc) end
+            if parObj.SetColor then parObj:SetColor(color) end
+            return true
+        end
+        if parObj.Update then
+            parObj:Update({Title = newTitle, Desc = newDesc, Color = color})
+            return true
+        end
+        if parObj.Paragraph and parObj.Paragraph.SetTitle then
+            parObj.Paragraph:SetTitle(newTitle)
+            return true
+        end
+        return false
+    end)
+    if ok and updated then return parObj end
+    if parObj and type(parObj) == "table" then
+        pcall(function()
+            if parObj.Destroy then parObj:Destroy() end
+        end)
+    end
+    local ok2, newPar = pcall(function()
+        return EspTab:Paragraph({
+            Title = newTitle,
+            Desc = newDesc,
+            Color = color
+        })
+    end)
+    if ok2 then
+        task.defer(function()
+            pcall(function()
+                if newPar.Title then
+                    newPar.Title.TextSize = 20
+                    newPar.Title.Font = Enum.Font.GothamBold
+                end
+            end)
+        end)
+        return newPar
+    end
+    return nil
+end
+
+local function findGunHolder()
+    for _, player in ipairs(Players:GetPlayers()) do
+        local backpack = player:FindFirstChildOfClass("Backpack")
+        if backpack and backpack:FindFirstChild("Gun") then
+            return player
+        end
+        local char = player.Character
+        if char and char:FindFirstChild("Gun") then
+            return player
+        end
+    end
+    return nil
+end
+
+local function findKnifeHolder()
+    for _, player in ipairs(Players:GetPlayers()) do
+        local backpack = player:FindFirstChildOfClass("Backpack")
+        if backpack and backpack:FindFirstChild("Knife") then
+            return player
+        end
+        local char = player.Character
+        if char and char:FindFirstChild("Knife") then
+            return player
+        end
+    end
+    return nil
+end
+
+local lastSheriffText = ""
+local lastMurderText = ""
+
+RunService.Heartbeat:Connect(function()
+    local sheriff = findGunHolder()
+    local murderer = findKnifeHolder()
+
+    local sheriffText = "Sheriff: N/A"
+    local sheriffDesc = ""
+    local sheriffColor = "Red"
+    if sheriff then
+        sheriffText = "Sheriff: " .. sheriff.Name
+        sheriffDesc = "Vivo"
+        sheriffColor = "Blue"
+    end
+
+    local murderText = "Murderer: N/A"
+    local murderDesc = ""
+    local murderColor = "Red"
+    if murderer then
+        murderText = "Murderer: " .. murderer.Name
+        murderDesc = "Vivo"
+        murderColor = "Red"
+    end
+
+    if sheriffText ~= lastSheriffText then
+        sheriffParagraph = safeUpdateParagraph(sheriffParagraph, sheriffText, sheriffDesc, sheriffColor) or sheriffParagraph
+        lastSheriffText = sheriffText
+    end
+
+    if murderText ~= lastMurderText then
+        murderParagraph = safeUpdateParagraph(murderParagraph, murderText, murderDesc, murderColor) or murderParagraph
+        lastMurderText = murderText
+    end
+end)
+
+-- ESP Players
+local espRunning = false
+local espThread = nil
+
+EspTab:Toggle({
+    Title = "Ver Roles",
+    Icon = "users",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        -- Detener el ESP si estaba activo
+        if espThread and espRunning then
+            espRunning = false
+            espThread = nil
+            -- Limpiar inmediatamente
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then
+                    local hl = player.Character:FindFirstChild("RoleHighlight")
+                    if hl then hl:Destroy() end
+                end
+            end
+        end
+
+        if not Value then return end
+
+        local roleColors = {
+            Murderer = Color3.fromRGB(255, 0, 0),
+            Sheriff = Color3.fromRGB(0, 0, 255),
+            Hero = Color3.fromRGB(255, 255, 0),
+            Innocent = Color3.fromRGB(0, 255, 0),
+            Default = Color3.fromRGB(200, 200, 200)
+        }
+
+        local function getRoles()
+            local data = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+            local roles = {}
+            if type(data) == "table" then
+                for plrName, plrData in pairs(data) do
+                    if type(plrData) == "table" and not plrData.Dead then
+                        roles[plrName] = plrData.Role
+                    end
+                end
+            end
+            return roles
+        end
+
+        local function applyHighlight(character, role)
+            local hl = character:FindFirstChild("RoleHighlight")
+            if hl then hl:Destroy() end
+
+            hl = Instance.new("Highlight")
+            hl.Name = "RoleHighlight"
+            hl.FillColor = roleColors[role] or roleColors.Default
+            hl.OutlineColor = Color3.new(1, 1, 1)
+            hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+            hl.FillTransparency = 0.4
+            hl.OutlineTransparency = 0
+            hl.Parent = character
+        end
+
+        -- Iniciar el bucle de ESP
+        espRunning = true
+        espThread = task.spawn(function()
+            while espRunning do
+                pcall(function()
+                    local roles = getRoles()
+                    for _, player in ipairs(Players:GetPlayers()) do
+                        if espRunning and player ~= LocalPlayer and player.Character then
+                            local role = roles[player.Name] or "Default"
+                            applyHighlight(player.Character, role)
+                        end
+                    end
+                end)
+                task.wait(0.5)
+            end
+
+            -- Limpiar al salir del bucle (por si acaso)
+            if not espRunning then
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character then
+                        local hl = player.Character:FindFirstChild("RoleHighlight")
+                        if hl then hl:Destroy() end
+                    end
+                end
+            end
+        end)
+    end
+})
+
+-- ESP Gun
+EspTab:Toggle({
+    Title = "Ver Arma",
+    Icon = "crosshair",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        local function clearGunESP()
+            local gun = Workspace:FindFirstChild("GunDrop", true)
+            if gun then
+                if gun:FindFirstChild("GunHighlight") then gun.GunHighlight:Destroy() end
+                if gun:FindFirstChild("GunEsp") then gun.GunEsp:Destroy() end
+            end
+        end
+        if not Value then
+            clearGunESP()
+            return
+        end
+        task.spawn(function()
+            while Value do
+                local gun = Workspace:FindFirstChild("GunDrop", true)
+                if gun then
+                    if not gun:FindFirstChild("GunHighlight") then
+                        local gunh = Instance.new("Highlight", gun)
+                        gunh.Name = "GunHighlight"
+                        gunh.FillColor = Color3.new(1, 1, 0)
+                        gunh.OutlineColor = Color3.new(1, 1, 1)
+                        gunh.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+                        gunh.FillTransparency = 0.4
+                        gunh.OutlineTransparency = 0.5
+                    end
+                    if not gun:FindFirstChild("GunEsp") then
+                        local esp = Instance.new("BillboardGui")
+                        esp.Name = "GunEsp"
+                        esp.Adornee = gun
+                        esp.Size = UDim2.new(5, 0, 5, 0)
+                        esp.AlwaysOnTop = true
+                        esp.Parent = gun
+                        local text = Instance.new("TextLabel", esp)
+                        text.Size = UDim2.new(1, 0, 1, 0)
+                        text.BackgroundTransparency = 1
+                        text.TextStrokeTransparency = 0
+                        text.TextColor3 = Color3.fromRGB(255, 255, 0)
+                        text.Font = Enum.Font.FredokaOne
+                        text.TextSize = 16
+                        text.Text = "Gun Drop"
+                    end
+                end
+                task.wait(0.2)
+            end
+            clearGunESP()
+        end)
+    end
+})
+
+-- Grab Gun
+EspTab:Button({
+    Title = "Traer Arma",
+    Icon = "hand",
+    Callback = function()
+        if env.Char and env.Root then
+            local gun = Workspace:FindFirstChild("GunDrop", true)
+            if gun then
+                if firetouchinterest then
+                    firetouchinterest(env.Root, gun, 0)
+                    firetouchinterest(env.Root, gun, 1)
+                else
+                    gun.CFrame = env.Root.CFrame
+                end
+            end
+        end
+    end
+})
+
+-- Auto Grab Gun Toggle
+EspTab:Toggle({
+    Title = "Traer Arma auto",
+    Icon = "repeat",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        env.AutoGrabGun = Value
+        if Value then
+            WindUI:Notify({
+                Title = "Traer Arma",
+                Content = "Activado - Agarrará el arma automáticamente cuando aparezca",
+                Duration = 3
+            })
+            
+            -- Crear conexión para detectar cuando el arma aparece
+            env.GunGrabConnection = Workspace.DescendantAdded:Connect(function(descendant)
+                if env.AutoGrabGun and descendant.Name == "GunDrop" then
+                    task.wait(0.1) -- Pequeño delay para asegurar que el arma esté completamente cargada
+                    
+                    if env.Char and env.Root then
+                        local gun = Workspace:FindFirstChild("GunDrop", true)
+                        if gun then
+                            -- Intentar agarrar el arma
+                            if firetouchinterest then
+                                firetouchinterest(env.Root, gun, 0)
+                                task.wait()
+                                firetouchinterest(env.Root, gun, 1)
+                            else
+                                gun.CFrame = env.Root.CFrame
+                            end
+                            
+                            WindUI:Notify({
+                                Title = "Traer Arma",
+                                Content = "¡Arma agarrada automáticamente!",
+                                Duration = 2
+                            })
+                        end
+                    end
+                end
+            end)
+            
+            -- También verificar periódicamente por si el arma ya existe
+            task.spawn(function()
+                while env.AutoGrabGun do
+                    if env.Char and env.Root then
+                        local gun = Workspace:FindFirstChild("GunDrop", true)
+                        if gun then
+                            -- Agarrar el arma si existe
+                            if firetouchinterest then
+                                firetouchinterest(env.Root, gun, 0)
+                                task.wait()
+                                firetouchinterest(env.Root, gun, 1)
+                            else
+                                gun.CFrame = env.Root.CFrame
+                            end
+                        end
+                    end
+                    task.wait(1) -- Verificar cada segundo
+                end
+            end)
+        else
+            -- Desactivar
+            if env.GunGrabConnection then
+                env.GunGrabConnection:Disconnect()
+                env.GunGrabConnection = nil
+            end
+            WindUI:Notify({
+                Title = "Traer Arma",
+                Content = "Desactivado",
+                Duration = 2
+            })
+        end
+    end
+})
+
+-- Copy Names
+EspTab:Button({
+    Title = "COPIAR NOMBRE ASESINO",
+    Icon = "copy",
+    Callback = function()
+        local function getRoles()
+            local data = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+            local roles = {}
+            for plr, plrData in pairs(data) do
+                if not plrData.Dead then roles[plr] = plrData.Role end
+            end
+            return roles
+        end
+        local roles = getRoles()
+        for plrName, role in pairs(roles) do
+            if role == "Murderer" then
+                setclipboard(plrName)
+                WindUI:Notify({ Title = "MM2 Hub", Content = "Murder name copied: " .. plrName, Duration = 3 })
+                break
+            end
+        end
+    end
+})
+
+EspTab:Button({
+    Title = "COPIAR NOMBRE SHERIFF",
+    Icon = "copy",
+    Callback = function()
+        local function getRoles()
+            local data = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+            local roles = {}
+            for plr, plrData in pairs(data) do
+                if not plrData.Dead then roles[plr] = plrData.Role end
+            end
+            return roles
+        end
+        local roles = getRoles()
+        for plrName, role in pairs(roles) do
+            if role == "Sheriff" or role == "Hero" then
+                setclipboard(plrName)
+                WindUI:Notify({ Title = "MM2 Hub", Content = "Name " .. role .. " copied: " .. plrName, Duration = 3 })
+                break
+            end
+        end
+    end
+})
+
+-- === COMBAT TAB ===
+local CombatTab = Window:Tab({
+    Title = "Combate",
+    Icon = "sword",
+    Locked = false,
+})
+
+-- God Mode
+CombatTab:Toggle({
+    Title = "Tener 2 Vida",
+    Icon = "heart",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        env.RealGodMode = Value
+        if Value then
+            task.spawn(function()
+                while env.RealGodMode do
+                    local char = LocalPlayer.Character
+                    if char and char:FindFirstChild("Humanoid") then
+                        local hum = char.Humanoid
+                        if hum.Health < hum.MaxHealth then hum.Health = hum.MaxHealth end
+                        hum.BreakJointsOnDeath = false
+                        hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+                        hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+                        hum:SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+                        hum.PlatformStand = false
+                    end
+                    task.wait(0.1)
+                end
+            end)
+        end
+    end
+})
+
+-- Shoot Murder (FUNCIÓN MEJORADA - Equipa arma automáticamente)
+CombatTab:Toggle({
+    Title = "Boton Disparar Asesino(Móvil)",
+    Icon = "target",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        local guip = CoreGui:FindFirstChild("RobloxGui") or CoreGui
+        if Value then
+            if not guip:FindFirstChild("GunW") then
+                local GunGui = Instance.new("ScreenGui", guip)
+                GunGui.Name = "GunW"
+                GunGui.ResetOnSpawn = false
+                local Button = Instance.new("TextButton", GunGui)
+                Button.Size = UDim2.new(0, 86, 0, 45)
+                Button.Position = UDim2.new(0, 833, 0.455, -163)
+                Button.BackgroundTransparency = 0.5
+                Button.BackgroundColor3 = Color3.fromRGB(44, 44, 45)
+                Button.Text = "Shoot Murder"
+                Button.TextColor3 = Color3.new(1, 1, 1)
+                Button.TextSize = 12
+                Button.Font = Enum.Font.GothamBold
+                Instance.new("UICorner", Button)
+                
+                Button.MouseButton1Click:Connect(function()
+                    -- 🔫 FUNCIÓN MEJORADA - Equipa arma automáticamente
+                    local murder = nil
+                    
+                    -- 🔍 Detectar quién tiene Knife
+                    for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                        if player ~= game.Players.LocalPlayer then
+                            local hasKnife = false
+
+                            if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
+                                hasKnife = true
+                            end
+
+                            if player.Character and player.Character:FindFirstChild("Knife") then
+                                hasKnife = true
+                            end
+
+                            if hasKnife then
+                                murder = player
+                                break
+                            end
+                        end
+                    end
+
+                    if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
+                        local char = game.Players.LocalPlayer.Character
+                        if not char then return end
+                        
+                        -- 🔄 EQUIPAR ARMA AUTOMÁTICAMENTE (Como en WindUI original)
+                        local gun = char:FindFirstChild("Gun") or LocalPlayer.Backpack:FindFirstChild("Gun")
+                        if not gun then
+                            WindUI:Notify({
+                                Title = "Error",
+                                Content = "You don't have the gun!",
+                                Duration = 3
+                            })
+                            return
+                        end
+                        
+                        -- Equipar el arma si está en el backpack
+                        if gun.Parent == LocalPlayer.Backpack then
+                            gun.Parent = char
+                            task.wait(0.05)
+                        end
+                        
+                        local hum = char:FindFirstChildOfClass("Humanoid")
+                        if hum then 
+                            hum:EquipTool(gun)
+                            task.wait(0.1)
+                        end
+                        
+                        -- 🎯 Cálculo de predicción (Fluent)
+                        local hrp = murder.Character.HumanoidRootPart
+                        local murderPos = hrp.Position
+                        local velocity = hrp.Velocity
+
+                        -- Obtener ping
+                        local pingMs = 0
+                        local stats = game:GetService("Stats")
+                        if stats:FindFirstChild("Network") and stats.Network:FindFirstChild("ServerStatsItem") then
+                            local pingStat = stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+                            if pingStat then
+                                pingMs = pingStat:GetValue()
+                            end
+                        end
+                        local pingSec = math.clamp(pingMs / 1000, 0, 1)
+
+                        -- Calcular offset
+                        local leadOffset = velocity * pingSec
+                        if velocity.Magnitude < 2 then
+                            leadOffset = Vector3.new(0, 0, 0)
+                        end
+
+                        local targetPos = murderPos + leadOffset
+                        local args = {1, Vector3.new(targetPos.X, targetPos.Y, targetPos.Z), "AH2"}
+
+                        -- Ejecutar disparo
+                        if gun:FindFirstChild("KnifeLocal") and gun.KnifeLocal:FindFirstChild("CreateBeam") then
+                            gun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(unpack(args))
+                            
+                            WindUI:Notify({
+                                Title = "Disparo",
+                                Content = "Disparo a" .. murder.Name,
+                                Duration = 3
+                            })
+                        end
+                    else
+                        WindUI:Notify({
+                            Title = "Error",
+                            Content = "No Hay Jugador Con arma!",
+                            Duration = 3
+                        })
+                    end
+                end)
+            end
+        else
+            if guip:FindFirstChild("GunW") then 
+                guip:FindFirstChild("GunW"):Destroy() 
+            end
+        end
+    end
+})
+
+-- Kill Near Button
+CombatTab:Toggle({
+    Title = "Matar Al Más Sercano (asesino solo)",
+    Icon = "zap",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(Value)
+        local guip = CoreGui:FindFirstChild("RobloxGui") or CoreGui
+        if Value then
+            if not guip:FindFirstChild("KillNearW") then
+                local KillGui = Instance.new("ScreenGui", guip)
+                KillGui.Name = "KillNearW"
+                local TextButton = Instance.new("TextButton", KillGui)
+                TextButton.Position = UDim2.new(0, 922, 0.455, -163)
+                TextButton.Size = UDim2.new(0, 86, 0, 45)
+                TextButton.BackgroundTransparency = 0.2
+                TextButton.BackgroundColor3 = Color3.fromRGB(44, 44, 45)
+                TextButton.BorderColor3 = Color3.new(1, 1, 1)
+                TextButton.Text = "Kill Near"
+                TextButton.TextColor3 = Color3.new(1, 1, 1)
+                TextButton.TextSize = 10
+                Instance.new("UICorner", TextButton)
+                TextButton.MouseButton1Click:Connect(function()
+                    local localChar = LocalPlayer.Character
+                    if not localChar or not localChar:FindFirstChild("HumanoidRootPart") then return end
+                    local localRoot = localChar.HumanoidRootPart
+                    local closestPlayer, closestDistance = nil, math.huge
+                    for _, player in pairs(Players:GetPlayers()) do
+                        if player ~= LocalPlayer then
+                            local targetChar = player.Character
+                            if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+                                local distance = (targetChar.HumanoidRootPart.Position - localRoot.Position).Magnitude
+                                if distance < closestDistance then
+                                    closestDistance = distance
+                                    closestPlayer = player
+                                end
+                            end
+                        end
+                    end
+                    if closestPlayer then
+                        local targetChar = closestPlayer.Character
+                        if targetChar and targetChar:FindFirstChild("HumanoidRootPart") then
+                            targetChar.HumanoidRootPart.CFrame = localRoot.CFrame * CFrame.new(0, 0, -3)
+                        end
+                    end
+                end)
+            end
+        else
+            if guip:FindFirstChild("KillNearW") then guip:FindFirstChild("KillNearW"):Destroy() end
+        end
+    end
+})
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
+local CurrentCamera = Workspace.CurrentCamera
+local LocalPlayer = Players.LocalPlayer
+
+local roles = {}
+local Murder, Sheriff
+local isCameraLocked = false
+local isSpectating = false
+local lockedRole = nil
+local cameraConnection = nil
+local originalCameraType = Enum.CameraType.Custom
+local originalCameraSubject = nil
+
+function IsAlive(player)
+    for name, data in pairs(roles) do
+        if (player.Name == name) then
+            return not data.Killed and not data.Dead
+        end
+    end
+    return false
+end
+
+local function UpdateRoles()
+    local success, result = pcall(function()
+        return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+    end)
+    if success then
+        roles = result or {}
+        Murder, Sheriff = nil, nil
+        for name, data in pairs(roles) do
+            if (data.Role == "Murderer") then
+                Murder = name
+            elseif (data.Role == "Sheriff") then
+                Sheriff = name
+            end
+        end
+    end
+end
+
+
+-- Dropdown para seleccionar rol
+CombatTab:Dropdown({
+    Title = "Rol Para Apuntar", 
+    Values = {"None", "Sheriff", "Asesino"}, 
+    Value = "None", 
+    Callback = function(selected)
+        lockedRole = ((selected ~= "None") and selected) or nil
+    end
+})
+
+-- Toggle para modo espectador
+CombatTab:Toggle({
+    Title = "Modo Espectear", 
+    Default = false, 
+    Callback = function(state)
+        isSpectating = state
+        if state then
+            originalCameraType = CurrentCamera.CameraType
+            originalCameraSubject = CurrentCamera.CameraSubject
+            CurrentCamera.CameraType = Enum.CameraType.Scriptable
+        else
+            CurrentCamera.CameraType = originalCameraType
+            CurrentCamera.CameraSubject = originalCameraSubject
+        end
+    end
+})
+
+-- Toggle para bloquear cámara
+CombatTab:Toggle({
+    Title = "Apuntar Camara", 
+    Default = false, 
+    Callback = function(state)
+        isCameraLocked = state
+        if (not state and not isSpectating) then
+            CurrentCamera.CameraType = originalCameraType
+            CurrentCamera.CameraSubject = originalCameraSubject
+        end
+    end
+})
+
+local function GetTargetPosition()
+    if not lockedRole then
+        return nil
+    end
+    local targetName = ((lockedRole == "Sheriff") and Sheriff) or Murder
+    if not targetName then
+        return nil
+    end
+    local player = Players:FindFirstChild(targetName)
+    if (not player or not IsAlive(player)) then
+        return nil
+    end
+    local character = player.Character
+    if not character then
+        return nil
+    end
+    local head = character:FindFirstChild("Head")
+    return (head and head.Position) or nil
+end
+
+local function UpdateSpectate()
+    if (not isSpectating or not lockedRole) then
+        return
+    end
+    local targetPos = GetTargetPosition()
+    if not targetPos then
+        return
+    end
+    local offset = CFrame.new(0, 2, 8)
+    local targetChar = Players:FindFirstChild(((lockedRole == "Sheriff") and Sheriff) or Murder).Character
+    if targetChar then
+        local root = targetChar:FindFirstChild("HumanoidRootPart")
+        if root then
+            CurrentCamera.CFrame = root.CFrame * offset
+        end
+    end
+end
+
+local function UpdateLockCamera()
+    if (not isCameraLocked or not lockedRole) then
+        return
+    end
+    local targetPos = GetTargetPosition()
+    if not targetPos then
+        return
+    end
+    local currentPos = CurrentCamera.CFrame.Position
+    CurrentCamera.CFrame = CFrame.new(currentPos, targetPos)
+end
+
+local function Update()
+    if isSpectating then
+        UpdateSpectate()
+    elseif isCameraLocked then
+        UpdateLockCamera()
+    end
+end
+
+-- Auto actualizar roles
+local function AutoUpdate()
+    while true do
+        UpdateRoles()
+        task.wait(3)
+    end
+end
+
+coroutine.wrap(AutoUpdate)()
+cameraConnection = RunService.RenderStepped:Connect(Update)
+
+-- Limpiar conexiones
+LocalPlayer.AncestryChanged:Connect(function()
+    if (not LocalPlayer.Parent and cameraConnection) then
+        cameraConnection:Disconnect()
+        CurrentCamera.CameraType = originalCameraType
+        CurrentCamera.CameraSubject = originalCameraSubject
+    end
+end)
+
+UpdateRoles()
+
+local killActive = false
+local attackDelay = 0.5
+local targetRoles = {"Sheriff", "Hero", "Innocent"}
+
+local function getPlayerRole(player)
+    local roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+    if (roles and roles[player.Name]) then
+        return roles[player.Name].Role
+    end
+    return nil
+end
+
+local function equipKnife()
+    local character = LocalPlayer.Character
+    if not character then
+        return false
+    end
+    if character:FindFirstChild("Knife") then
+        return true
+    end
+    local knife = LocalPlayer.Backpack:FindFirstChild("Knife")
+    if knife then
+        knife.Parent = character
+        return true
+    end
+    return false
+end
+
+local function getNearestTarget()
+    local targets = {}
+    local roles = ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+    local localRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if not localRoot then
+        return nil
+    end
+    
+    for _, player in ipairs(Players:GetPlayers()) do
+        if ((player ~= LocalPlayer) and player.Character) then
+            local role = getPlayerRole(player)
+            local humanoid = player.Character:FindFirstChild("Humanoid")
+            local targetRoot = player.Character:FindFirstChild("HumanoidRootPart")
+            if (role and humanoid and (humanoid.Health > 0) and targetRoot and table.find(targetRoles, role)) then
+                table.insert(targets, {
+                    Player = player, 
+                    Distance = (localRoot.Position - targetRoot.Position).Magnitude
+                })
+            end
+        end
+    end
+    
+    table.sort(targets, function(a, b)
+        return a.Distance < b.Distance
+    end)
+    
+    return (targets[1] and targets[1].Player) or nil
+end
+
+local function attackTarget(target)
+    if (not target or not target.Character) then
+        return false
+    end
+    
+    local humanoid = target.Character:FindFirstChild("Humanoid")
+    if (not humanoid or (humanoid.Health <= 0)) then
+        return false
+    end
+    
+    if not equipKnife() then
+        WindUI:Notify({Title = "Kill Targets", Content = "No knife found!", Icon = "x-circle", Duration = 2})
+        return false
+    end
+    
+    local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+    local localRoot = LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if (targetRoot and localRoot) then
+        localRoot.CFrame = CFrame.new(
+            targetRoot.Position + ((localRoot.Position - targetRoot.Position).Unit * 2),
+            targetRoot.Position
+        )
+    end
+    
+    local knife = LocalPlayer.Character:FindFirstChild("Knife")
+    if (knife and knife:FindFirstChild("Stab")) then
+        for i = 1, 3 do
+            knife.Stab:FireServer("Down")
+        end
+        return true
+    end
+    return false
+end
+
+local function killTargets()
+    if killActive then
+        return
+    end
+    
+    killActive = true
+    WindUI:Notify({
+        Title = "Matar",
+        Content = "Comenzando Ataque Sercano...",
+        Icon = "alert-circle",
+        Duration = 2
+    })
+    
+    local function attackSequence()
+        while killActive do
+            local target = getNearestTarget()
+            if not target then
+                WindUI:Notify({
+                    Title = "Matar",
+                    Content = "No Hay Enemigo!",
+                    Icon = "check-circle",
+                    Duration = 3
+                })
+                killActive = false
+                break
+            end
+            
+            if attackTarget(target) then
+                WindUI:Notify({
+                    Title = "Matar",
+                    Content = "Atacado " .. target.Name,
+                    Icon = "check-circle",
+                    Duration = 1
+                })
+            end
+            task.wait(attackDelay)
+        end
+    end
+    
+    task.spawn(attackSequence)
+end
+
+local function stopKilling()
+    killActive = false
+    WindUI:Notify({Title = "Matar", Content = "La secuencia de ataque se detuvo", Icon = "x-circle", Duration = 2})
+end
+
+CombatTab:Toggle({
+    Title = "Matar Todos", 
+    Default = false, 
+    Callback = function(state)
+        if state then
+            killTargets()
+        else
+            stopKilling()
+        end
+    end
+})
+
+CombatTab:Slider({
+    Title = "Tiemp de Ataque",
+    Step = 0.1,
+    Value = {Min = 0.1, Max = 2, Default = 0.5},
+    Callback = function(value)
+        attackDelay = value
+        WindUI:Notify({
+            Title = "Kill Targets",
+            Content = "Delay set to " .. value .. "s",
+            Icon = "check-circle",
+            Duration = 2
+        })
+    end
+})
+
+
+-- === AUTO FARM TAB (sin Teleport Lobby) ===
+local FarmTab = Window:Tab({
+	Title = "Auto Farm",
+	Icon = "clock",
+	Locked = false,
+})
+
+local AutoFarm = {
+	Enabled = false,
+	KillAfterFarm = false,
+    AutoShootAfterFarm = false,
+    FlingMurderAfterFarm = false, -- Nuevo toggle
+    HideAfterFarm = false, -- Nuevo estado interno para ocultarse
+	Player = Players.LocalPlayer,
+	Character = nil,
+	HumanoidRootPart = nil,
+	start_position = nil,
+	bag_full = false,
+	ToFarm = "Candy",
+	speed = 28,
+	CoinCollected = ReplicatedStorage.Remotes.Gameplay.CoinCollected,
+	RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart,
+	RoundEnd = ReplicatedStorage.Remotes.Gameplay.RoundEndFade,
+	AnimationId = "rbxassetid://127212897044971",
+	AnimationTrack = nil,
+    HideAnimationTrack = nil, -- Nuevo track para ocultarse
+	FarmingLoop = nil,
+	KillingLoop = nil,
+    AutoShootLoop = nil,
+    FlingMurderLoop = nil, -- Nuevo loop para fling
+    HideLoop = nil, -- Nuevo loop para ocultarse
+	IsKilling = false,
+    IsAutoShooting = false,
+    IsFlingingMurder = false, -- Nuevo estado
+    IsHiding = false, -- Nuevo estado
+    -- Variables para Noclip de ocultarse
+    HideNoclip = false,
+    HideNoclipLoop = nil,
+    -- Variables para Noclip de fling
+    FlingNoclip = false,
+    FlingNoclipLoop = nil,
+}
+
+-- Función para obtener el rol del jugador local
+local function getMyRole()
+	local success, gameData = pcall(function()
+		return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+	end)
+	if success and gameData and gameData[AutoFarm.Player.Name] then
+		return gameData[AutoFarm.Player.Name].Role
+	end
+	return "Innocent"
+end
+
+-- Función para verificar si tengo el arma
+local function hasGun()
+    local char = AutoFarm.Player.Character
+    if not char then return false end
+    -- Buscar arma en el character
+    if char:FindFirstChild("Gun") then
+        return true
+    end
+    -- Buscar arma en el backpack
+    local backpack = AutoFarm.Player:FindFirstChild("Backpack")
+    if backpack and backpack:FindFirstChild("Gun") then
+        return true
+    end
+    return false
+end
+
+-- Función para verificar si soy el asesino
+local function isMyRoleMurderer()
+    return getMyRole() == "Murderer"
+end
+
+-- Función para verificar si soy un Sheriff o Hero
+local function isMyRoleSheriffOrHero()
+    local myRole = getMyRole()
+    return myRole == "Sheriff" or myRole == "Hero"
+end
+
+-- Función robusta para verificar si un jugador está vivo, en partida y no en lobby
+local function isPlayerValidTarget(player)
+	-- No atacar al jugador local
+	if player == AutoFarm.Player then return false end
+	-- Jugador debe existir
+	if not player or not player.Character then return false end
+	local humanoid = player.Character:FindFirstChild("Humanoid")
+	local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+	if not humanoid or not rootPart then return false end
+	if humanoid.Health <= 0 then return false end
+	-- Evitar lobby o mapas no válidos
+	if rootPart.Position.Y < -50 then return false end
+	-- Verificar estado real del jugador en el servidor
+	local success, gameData = pcall(function()
+		return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+	end)
+	if success and gameData and gameData[player.Name] then
+		local pData = gameData[player.Name]
+		return not pData.Dead and (pData.Role == "Innocent" or pData.Role == "Sheriff" or pData.Role == "Hero")
+	end
+	return false
+end
+
+-- Función para detectar si un jugador es el asesino (tiene cuchillo)
+local function isPlayerMurderer(player)
+    if player == AutoFarm.Player then return false end -- No soy yo
+    if not player or not player.Character then return false end
+    -- Buscar cuchillo en el character
+    if player.Character:FindFirstChild("Knife") then
+        return true
+    end
+    -- Buscar cuchillo en el backpack
+    local backpack = player:FindFirstChild("Backpack")
+    if backpack and backpack:FindFirstChild("Knife") then
+        return true
+    end
+    return false
+end
+
+-- Función para encontrar al asesino actual
+local function findMurderer()
+    for _, player in ipairs(Players:GetPlayers()) do
+        if isPlayerMurderer(player) then
+            return player
+        end
+    end
+    return nil
+end
+
+-- Función para cargar animación de esconderse
+function AutoFarm:LoadHideAnimation()
+	if self.Character and self.Character:FindFirstChildOfClass("Humanoid") then
+		local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			local animator = humanoid:FindFirstChildOfClass("Animator")
+			if animator then
+				local animation = Instance.new("Animation")
+				animation.AnimationId = self.AnimationId
+				self.HideAnimationTrack = animator:LoadAnimation(animation)
+				return true
+			end
+		end
+	end
+	return false
+end
+
+-- Función para reproducir animación de esconderse
+function AutoFarm:PlayHideAnimation()
+	if self.HideAnimationTrack then
+		self.HideAnimationTrack:Play()
+        self.HideAnimationTrack.Looped = true
+	elseif self:LoadHideAnimation() then
+		self.HideAnimationTrack:Play()
+        self.HideAnimationTrack.Looped = true
+	end
+end
+
+-- Función para detener animación de esconderse
+function AutoFarm:StopHideAnimation()
+	if self.HideAnimationTrack then
+		self.HideAnimationTrack:Stop()
+		self.HideAnimationTrack:Destroy() -- Limpiar
+		self.HideAnimationTrack = nil
+	end
+end
+
+-- Función para activar Noclip de esconderse
+function AutoFarm:StartHideNoclip()
+    self.HideNoclip = true
+    if self.HideNoclipLoop then return end -- Ya está activo
+    self.HideNoclipLoop = task.spawn(function()
+        while self.HideNoclip do
+            if self.Character then
+                for _, part in ipairs(self.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
+-- Función para detener Noclip de esconderse
+function AutoFarm:StopHideNoclip()
+    self.HideNoclip = false
+    if self.HideNoclipLoop then
+        self.HideNoclipLoop = nil
+    end
+    -- Restaurar colisiones
+    if self.Character then
+        for _, part in ipairs(self.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+-- Función para activar Noclip de fling
+function AutoFarm:StartFlingNoclip()
+    self.FlingNoclip = true
+    if self.FlingNoclipLoop then return end -- Ya está activo
+    self.FlingNoclipLoop = task.spawn(function()
+        while self.FlingNoclip do
+            if self.Character then
+                for _, part in ipairs(self.Character:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.CanCollide = false
+                    end
+                end
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
+-- Función para detener Noclip de fling
+function AutoFarm:StopFlingNoclip()
+    self.FlingNoclip = false
+    if self.FlingNoclipLoop then
+        self.FlingNoclipLoop = nil
+    end
+    -- Restaurar colisiones
+    if self.Character then
+        for _, part in ipairs(self.Character:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = true
+            end
+        end
+    end
+end
+
+
+function AutoFarm:LoadAnimation()
+	if self.Character and self.Character:FindFirstChildOfClass("Humanoid") then
+		local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			local animator = humanoid:FindFirstChildOfClass("Animator")
+			if animator then
+				local animation = Instance.new("Animation")
+				animation.AnimationId = self.AnimationId
+				self.AnimationTrack = animator:LoadAnimation(animation)
+				return true
+			end
+		end
+	end
+	return false
+end
+
+function AutoFarm:PlayAnimation()
+	if self.AnimationTrack then
+		self.AnimationTrack:Play()
+	elseif self:LoadAnimation() then
+		self.AnimationTrack:Play()
+	end
+end
+
+function AutoFarm:StopAnimation()
+	if self.AnimationTrack then
+		self.AnimationTrack:Stop()
+		self.AnimationTrack = nil
+	end
+end
+
+AutoFarm.Player.CharacterAdded:Connect(function(newChar)
+	AutoFarm.Character = newChar
+	AutoFarm.HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+	AutoFarm.start_position = AutoFarm.HumanoidRootPart.CFrame
+	if AutoFarm.Enabled then
+		task.wait(1)
+		AutoFarm.bag_full = false
+		AutoFarm.IsKilling = false
+        AutoFarm.IsAutoShooting = false
+        AutoFarm.IsFlingingMurder = false
+        AutoFarm.IsHiding = false
+		AutoFarm:LoadAnimation()
+		if AutoFarm.AnimationTrack then
+			AutoFarm.AnimationTrack:Play()
+		end
+		if not AutoFarm.FarmingLoop or coroutine.status(AutoFarm.FarmingLoop) == "dead" then
+			AutoFarm:startFarmingLoop()
+		end
+	end
+end)
+
+if AutoFarm.Player.Character then
+	AutoFarm.Character = AutoFarm.Player.Character
+	AutoFarm.HumanoidRootPart = AutoFarm.Character:WaitForChild("HumanoidRootPart")
+	AutoFarm.start_position = AutoFarm.HumanoidRootPart.CFrame
+end
+
+function AutoFarm:getNearestCoin()
+	local closest_coin, min_distance = nil, math.huge
+	for _, model in pairs(Workspace:GetChildren()) do
+		if model:FindFirstChild("CoinContainer") then
+			for _, coin in pairs(model.CoinContainer:GetChildren()) do
+				if coin:GetAttribute("CoinID") == self.ToFarm and coin:FindFirstChild("TouchInterest") then
+					local distance = (self.HumanoidRootPart.Position - coin.Position).Magnitude
+					if distance < min_distance then
+						closest_coin = coin
+						min_distance = distance
+					end
+				end
+			end
+		end
+	end
+	return closest_coin, min_distance
+end
+
+-- Función para moverse suavemente usando TweenService, ajustada por AutoFarm.speed
+-- Ahora: speed más alto = más rápido (tween más corto), speed más bajo = más lento (tween más largo)
+function AutoFarm:tweenTo(position, distance)
+    local targetSpeed = self.speed
+    local baseSpeed = 31 -- Valor de referencia
+    local adjustedTime = distance / targetSpeed
+    -- Limitar el tiempo para evitar movimientos demasiado lentos o rápidos
+    adjustedTime = math.clamp(adjustedTime, 0.05, 5) -- Entre 0.05s y 5s
+
+    local tweenInfo = TweenInfo.new(adjustedTime, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+    local tween = game:GetService("TweenService"):Create(self.HumanoidRootPart, tweenInfo, { CFrame = CFrame.new(position) })
+    tween:Play()
+    return tween
+end
+
+
+function AutoFarm:startFarmingLoop()
+    if AutoFarm.FarmingLoop then
+        coroutine.close(AutoFarm.FarmingLoop)
+    end
+    AutoFarm.FarmingLoop = task.spawn(function()
+        local firstCandyCollected = false
+        local stuckTimer = 0
+        local lastPosition = nil
+        local isStuck = false
+        local lastCoinCheckTime = tick()
+
+        while self.Enabled do
+            -- 🔄 VERIFICAR SI LA BOLSA ESTÁ LLENA (PAUSAR FARMEO)
+            if self.bag_full then
+                -- 🛑 DETENER ANIMACIÓN MIENTRAS ESTÁ PAUSADO (la de farmeo)
+                self:StopAnimation()
+                -- ⏳ ESPERAR HASTA QUE EL JUEGO VUELVA A INICIAR UNA RONDA (y se vacíe la bolsa)
+                repeat
+                    task.wait(1)
+                until not self.bag_full or not self.Enabled
+                -- 🔄 REANUDAR FARMEO
+                if self.Enabled then
+                    self:PlayAnimation()
+                    firstCandyCollected = false
+                    stuckTimer = 0
+                    lastPosition = nil
+                    isStuck = false
+                    lastCoinCheckTime = tick()
+                end
+                continue
+            end
+
+            if self.Character and self.HumanoidRootPart then
+                -- 🔒 VERIFICAR QUE NO ESTÉ EN LOBBY
+                if self.HumanoidRootPart.Position.Y < -10 then -- Si está en el lobby, esperar
+                    task.wait(1)
+                    continue
+                end
+
+                -- 🎯 DETECCIÓN DE ATRACAMIENTO
+                local currentPosition = self.HumanoidRootPart.Position
+                if lastPosition then
+                    local distanceMoved = (currentPosition - lastPosition).Magnitude
+                    if distanceMoved < 1 then -- Si se movió menos de 1 unidad
+                        stuckTimer = stuckTimer + 0.1
+                    else
+                        stuckTimer = 0
+                        isStuck = false
+                    end
+                    -- Si está atascado por más de 0.5 segundos
+                    if stuckTimer >= 0.5 and not isStuck then
+                        isStuck = true
+                        -- WindUI:Notify({ -- Opcional: Notificar atascamiento
+                        --     Title = "Auto Farm",
+                        --     Content = "¡Detectado atascamiento! Aplicando solución...",
+                        --     Duration = 2
+                        -- })
+                        -- 🚀 SOLUCIÓN: DETENER ANIMACIÓN Y HACER SALTO
+                        self:StopAnimation()
+                        -- Hacer que el personaje salte
+                        local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
+                        if humanoid then
+                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+                        end
+                        -- Pequeño movimiento lateral para desatascar
+                        local randomOffset = Vector3.new(
+                            math.random(-2, 2),
+                            0,
+                            math.random(-2, 2)
+                        )
+                        self.HumanoidRootPart.CFrame = self.HumanoidRootPart.CFrame + randomOffset
+                        task.wait(0.2)
+                        -- 🔄 REANUDAR ANIMACIÓN DESPUÉS DE DESATASCAR
+                        self:PlayAnimation()
+                    end
+                end
+                lastPosition = currentPosition
+
+                local coin, distance = self:getNearestCoin()
+                if coin then
+                    -- 🚀 TP RÁPIDO SOLO PARA EL PRIMER CANDY
+                    if not firstCandyCollected then
+                        -- TP rápido al primer candy
+                        self.HumanoidRootPart.CFrame = coin.CFrame
+                        firstCandyCollected = true
+                        -- Esperar un momento para asegurar la recogida
+                        task.wait(0.2)
+                    else
+                        -- 🎯 TWEEN HACIA EL CANDY CON VELOCIDAD AJUSTADA
+                        local tween = self:tweenTo(coin.Position, distance)
+
+                        -- ⏰ ESPERAR EL TWEEN O HASTA QUE EL CANDY DESAPAREZCA
+                        -- Usamos un bucle para verificar si el tween terminó o si el candy se recogió
+                        local tweenCompleted = false
+                        local connection = tween.Completed:Connect(function()
+                            tweenCompleted = true
+                        end)
+
+                        -- Esperar mientras el candy existe y el tween no ha terminado
+                        local checkStartTime = tick()
+                        while coin and coin.Parent and not tweenCompleted and self.Enabled and not self.bag_full do
+                            task.wait(0.05) -- Espera corta para no sobrecargar
+                            -- Salir si pasó demasiado tiempo (posible atasco o candy cogido por otro)
+                            if tick() - checkStartTime > 1.5 then -- Timeout de 1.5 segundos
+                                break
+                            end
+                        end
+
+                        connection:Disconnect()
+
+                        -- Verificar si el candy sigue existiendo
+                        if coin and coin.Parent then
+                            -- El candy aún existe, posiblemente no se recogió
+                            -- TP directo para forzar la recogida
+                            self.HumanoidRootPart.CFrame = coin.CFrame
+                            task.wait(0.1) -- Pequeña pausa para asegurar
+                        end
+
+                    end
+                else
+                    -- 🔄 RESET TIMERS SI NO HAY CANDIES
+                    stuckTimer = 0
+                    isStuck = false
+                end
+            end
+            task.wait(0.1) -- Pequeña pausa en el bucle principal para rendimiento
+        end
+    end)
+end
+
+-- 🔄 MODIFICAR EL EVENTO DE BOLSA LLENA
+AutoFarm.CoinCollected.OnClientEvent:Connect(function(coin_type, current, max)
+	if coin_type == AutoFarm.ToFarm then
+        if current == max then
+            AutoFarm.bag_full = true
+            local myRole = getMyRole()
+            local hasGunWeapon = hasGun()
+            local isMurderer = isMyRoleMurderer()
+            local isSheriffOrHero = isMyRoleSheriffOrHero()
+
+            -- 🔫 Auto Shoot After Farm (SI TENGO ARMA Y ESTÁ ACTIVADO, TIENE PRIORIDAD)
+            if AutoFarm.AutoShootAfterFarm and AutoFarm.Enabled and hasGunWeapon and (isSheriffOrHero or myRole == "Innocent" or isMurderer) then -- Permitir cualquier rol si tiene arma y está activado
+                WindUI:Notify({
+                    Title = "Auto Farm",
+                    Content = "¡Bolsa llena! Iniciando secuencia de disparo automático (Arma detectada)...",
+                    Duration = 2
+                })
+                AutoFarm:startAutoShootLoop()
+            -- 🔪 Kill After Farm (si soy Murderer y está activado)
+            elseif AutoFarm.KillAfterFarm and AutoFarm.Enabled and isMurderer then
+                WindUI:Notify({
+                    Title = "Auto Farm",
+                    Content = "¡Saco lleno! Comienza la secuencia de asesinatos como Asesino...",
+                    Duration = 2
+                })
+                AutoFarm:startKillingLoop()
+            -- ⚔️ Fling Murder After Farm (si NO soy el asesino, NO tengo arma, está activado)
+            elseif AutoFarm.FlingMurderAfterFarm and AutoFarm.Enabled and not hasGunWeapon and not isMurderer then -- Asegurar que no soy el asesino y no tengo arma
+                 WindUI:Notify({
+                    Title = "Auto Farm",
+                    Content = "¡Saco lleno! Iniciando secuencia de expulsión del asesino (Fling)...",
+                    Duration = 2
+                })
+                AutoFarm:startFlingMurderLoop() -- Nuevo loop
+            -- 🎭 HIDE After Farm (si soy inocente y no hay otras acciones activadas)
+            else
+                -- Verificar si no hay otras acciones configuradas que deban ocurrir
+                local shouldHide = not AutoFarm.KillAfterFarm and not AutoFarm.AutoShootAfterFarm and not AutoFarm.FlingMurderAfterFarm
+                -- o si está activado pero no se cumplen las condiciones (por ejemplo, soy asesino pero kill after farm está activo)
+                local hideConditionsMet = (not AutoFarm.KillAfterFarm or not isMurderer) and (not AutoFarm.AutoShootAfterFarm or not hasGunWeapon) and (not AutoFarm.FlingMurderAfterFarm or hasGunWeapon or isMurderer) -- Si tengo arma o soy el asesino, no se oculta por fling
+
+                if shouldHide or (not isMurderer and hideConditionsMet) then -- Si se debe ocultar según condiciones
+                    WindUI:Notify({
+                        Title = "Auto Farm",
+                        Content = "¡Saco lleno! Activando sistema de ocultamiento...",
+                        Duration = 3
+                    })
+                    AutoFarm:startHideLoop() -- Nuevo loop
+                else
+                    -- Si no se activa ninguna acción, simplemente se pausa esperando nueva ronda
+                     WindUI:Notify({
+                        Title = "Auto Farm",
+                        Content = "¡Saco lleno! Esperando nueva ronda...",
+                        Duration = 3
+                    })
+                end
+            end
+        end
+	end
+end)
+
+-- 🔄 NUEVA FUNCIÓN: startHideLoop
+function AutoFarm:startHideLoop()
+    if AutoFarm.HideLoop then
+        coroutine.close(AutoFarm.HideLoop)
+    end
+    AutoFarm.HideLoop = task.spawn(function()
+        self.IsHiding = true
+        -- Detener animación de farmeo si existe
+        self:StopAnimation()
+        -- Activar animación y noclip de ocultarse
+        self:PlayHideAnimation()
+        self:StartHideNoclip()
+        WindUI:Notify({
+            Title = "Ocultamiento",
+            Content = "¡Sistema de ocultamiento activado!",
+            Duration = 3
+        })
+        -- Esperar hasta que se vacíe la bolsa (nueva ronda)
+        while self.bag_full and self.Enabled do
+            task.wait(1)
+        end
+        -- Al vaciarse la bolsa o desactivar autofarm, detenerse
+        self.IsHiding = false
+        self:StopHideAnimation()
+        self:StopHideNoclip()
+        WindUI:Notify({
+            Title = "Ocultamiento",
+            Content = "¡Sistema de ocultamiento detenido! Reanudando farm...",
+            Duration = 3
+        })
+        -- self:PlayAnimation() -- No se reanuda farmeo aquí, lo hace RoundStart
+        -- self:startFarmingLoop() -- No se reanuda farmeo aquí, lo hace RoundStart
+    end)
+end
+
+-- 🔄 NUEVA FUNCIÓN: startFlingMurderLoop
+function AutoFarm:startFlingMurderLoop()
+    if AutoFarm.FlingMurderLoop then
+        coroutine.close(AutoFarm.FlingMurderLoop)
+    end
+    AutoFarm.FlingMurderLoop = task.spawn(function()
+        self.IsFlingingMurder = true
+        -- Detener animación de farmeo si existe
+        self:StopAnimation()
+        -- Activar Noclip temporal para fling
+        self:StartFlingNoclip()
+        WindUI:Notify({
+            Title = "Sacar Asesino",
+            Content = "Buscando y expulsando al asesino...",
+            Duration = 3
+        })
+
+        local function equipKnife() -- Usamos cuchillo para flingear
+            local character = self.Character
+            if not character then return false end
+            if character:FindFirstChild("Knife") then return true end
+            local knife = self.Player.Backpack:FindFirstChild("Knife")
+            if knife then
+                knife.Parent = character
+                return true
+            end
+            return false
+        end
+
+        if not equipKnife() then
+            WindUI:Notify({
+                Title = "Sacar Asesino",
+                Content = "No se encontró el cuchillo para flingear. Deteniendo...",
+                Duration = 3
+            })
+            self.IsFlingingMurder = false
+            self:StopFlingNoclip()
+            return
+        end
+
+        local murder = findMurderer()
+        if not murder or not isPlayerValidTarget(murder) then
+             WindUI:Notify({
+                Title = "Sacar Asesino",
+                Content = "No se encontró al asesino o está muerto. Deteniendo...",
+                Duration = 3
+            })
+            self.IsFlingingMurder = false
+            self:StopFlingNoclip()
+            return
+        end
+
+        -- Tweenear hacia el asesino
+        local targetRoot = murder.Character:FindFirstChild("HumanoidRootPart")
+        if targetRoot then
+            local tween = self:tweenTo(targetRoot.Position, (self.HumanoidRootPart.Position - targetRoot.Position).Magnitude)
+            tween.Completed:Wait()
+            task.wait(0.1) -- Pequeña pausa después del tween
+        end
+
+        -- Repetir el proceso mientras la bolsa esté llena
+        while self.bag_full and self.Enabled and self.IsFlingingMurder do
+            murder = findMurderer()
+            if not murder or not isPlayerValidTarget(murder) then
+                 WindUI:Notify({
+                    Title = "Sacar Asesino",
+                    Content = "Asesino ya no es válido. Deteniendo...",
+                    Duration = 3
+                })
+                break
+            end
+
+            -- Equipar cuchillo antes de cada intento
+            if not equipKnife() then
+                 WindUI:Notify({
+                    Title = "Sacar Asesino",
+                    Content = "Cuchillo perdido. Deteniendo...",
+                    Duration = 3
+                })
+                break
+            end
+
+            targetRoot = murder.Character:FindFirstChild("HumanoidRootPart")
+            if targetRoot then
+                -- Intentar flingear con el cuchillo (Stab)
+                local knife = self.Character:FindFirstChild("Knife")
+                if knife and knife:FindFirstChild("Stab") then
+                    -- Este es el mecanismo de fling basado en el sistema del botón "Sacar Volar A Todos"
+                    -- Se simula el proceso de "hiddenfling" del sistema original
+                    local lp = Players.LocalPlayer
+                    local c = nil
+                    local hrp = self.HumanoidRootPart
+                    local vel = hrp.Velocity
+                    local movel = 0.1
+                    -- Aplicar velocidad alta opuesta para "flingear"
+                    hrp.Velocity = Vector3.new(vel.X, 0, vel.Z) + (hrp.CFrame.LookVector * -5000) + Vector3.new(0, 5000, 0)
+                    task.wait(0.1)
+                    hrp.Velocity = Vector3.new(0, 0, 0)
+                    -- Atacar inmediatamente después
+                    knife.Stab:FireServer("Down")
+                    WindUI:Notify({
+                        Title = "Sacar Asesino",
+                        Content = "Intentando expulsar a " .. murder.Name,
+                        Duration = 1
+                    })
+                end
+            end
+            task.wait(0.5) -- Intervalo entre intentos
+        end
+
+        -- Al finalizar, detener
+        self.IsFlingingMurder = false
+        self:StopFlingNoclip()
+        WindUI:Notify({
+            Title = "Sacar Asesino",
+            Content = "¡Secuencia finalizada! Esperando nueva ronda...",
+            Duration = 3
+        })
+        -- No se reanuda farmeo aquí, lo hace RoundStart
+    end)
+end
+
+
+-- 🔫 FUNCIÓN AUTO SHOOT MURDER COMPLETA (Igual al Fluent)
+function AutoFarm:startAutoShootLoop()
+    if AutoFarm.AutoShootLoop then
+        coroutine.close(AutoFarm.AutoShootLoop)
+    end
+    AutoFarm.AutoShootLoop = task.spawn(function()
+        self.IsAutoShooting = true
+        self:StopAnimation()
+        WindUI:Notify({
+            Title = "Disparo Auto Después De Farm",
+            Content = "Iniciando secuencia de disparo automático ...",
+            Duration = 3
+        })
+        -- 🔄 DOBLE LOOP: TP + SHOOT (Como en Fluent)
+        local tpLoop = task.spawn(function()
+            while self.IsAutoShooting and self.Enabled do
+                local murder = nil
+                -- Detectar murderer
+                for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer then
+                        local hasKnife = false
+                        if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
+                            hasKnife = true
+                        end
+                        if player.Character and player.Character:FindFirstChild("Knife") then
+                            hasKnife = true
+                        end
+                        if hasKnife then
+                            murder = player
+                            break
+                        end
+                    end
+                end
+                -- 🔗 TP CONSTANTE DETRÁS DEL MURDERER
+                if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = murder.Character.HumanoidRootPart
+                    local myChar = self.Character
+                    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
+                    if myHRP then
+                        -- TP a 15 unidades detrás del murderer (igual que Fluent)
+                        local backCFrame = hrp.CFrame * CFrame.new(0, 0, 15)
+                        myHRP.CFrame = backCFrame
+                    end
+                end
+                task.wait(0) -- TP rápido como en Fluent
+            end
+        end)
+        -- 🔫 LOOP DE DISPARO CONSTANTE
+        while self.IsAutoShooting and self.Enabled do
+            -- Verificar si tenemos el arma
+            if not hasGun() then
+                WindUI:Notify({
+                    Title = "Disparo Auto",
+                    Content = "¡No se encontró ningún arma! Deteniendo el disparo automático..",
+                    Duration = 3
+                })
+                break
+            end
+            local murder = nil
+            -- Detectar murderer
+            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
+                if player ~= game.Players.LocalPlayer then
+                    local hasKnife = false
+                    if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
+                        hasKnife = true
+                    end
+                    if player.Character and player.Character:FindFirstChild("Knife") then
+                        hasKnife = true
+                    end
+                    if hasKnife then
+                        murder = player
+                        break
+                    end
+                end
+            end
+            if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
+                local char = self.Character
+                if not char then break end
+                -- Equipar arma automáticamente
+                local gun = char:FindFirstChild("Gun") or self.Player.Backpack:FindFirstChild("Gun")
+                if gun and gun.Parent == self.Player.Backpack then
+                    gun.Parent = char
+                    task.wait(0.1)
+                end
+                local hrp = murder.Character.HumanoidRootPart
+                local murderPos = hrp.Position
+                -- 🎯 LEAD SHOT COMPLETO (Fluent)
+                local velocity = hrp.Velocity
+                -- Obtener ping
+                local pingMs = 0
+                local stats = game:GetService("Stats")
+                if stats:FindFirstChild("Network") and stats.Network:FindFirstChild("ServerStatsItem") then
+                    local pingStat = stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
+                    if pingStat then
+                        pingMs = pingStat:GetValue()
+                    end
+                end
+                local pingSec = math.clamp(pingMs / 1000, 0, 1)
+                -- Calcular offset de predicción
+                local leadOffset = velocity * pingSec
+                if velocity.Magnitude < 2 then
+                    leadOffset = Vector3.new(0, 0, 0)
+                end
+                local targetPos = murderPos + leadOffset
+                local args = {1, Vector3.new(targetPos.X, targetPos.Y, targetPos.Z), "AH2"}
+                -- Ejecutar disparo
+                local currentGun = char:FindFirstChild("Gun")
+                if currentGun and currentGun:FindFirstChild("KnifeLocal") and currentGun.KnifeLocal:FindFirstChild("CreateBeam") then
+                    currentGun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(unpack(args))
+                    WindUI:Notify({
+                        Title = "Disparo Auto",
+                        Content = "Disparado A" .. murder.Name,
+                        Duration = 1
+                    })
+                end
+            else
+                -- Verificar si hay jugadores vivos
+                local playersAlive = false
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
+                        playersAlive = true
+                        break
+                    end
+                end
+                if not playersAlive then
+                    WindUI:Notify({
+                        Title = "Disparo Auto",
+                        Content = "No Quedan Jugadores Reanudando farm.",
+                        Duration = 3
+                    })
+                    break
+                end
+            end
+            -- Disparar cada 0.5 segundos (más rápido que antes)
+            task.wait(0.5)
+        end
+        -- Detener el loop de TP cuando termine el de disparo
+        if tpLoop then
+            coroutine.close(tpLoop)
+        end
+        -- Regresar a estado de espera (bolsa llena, esperando ronda)
+        self.IsAutoShooting = false
+        -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+        WindUI:Notify({
+            Title = "Disparo Auto",
+            Content = "¡Secuencia finalizada! Esperando nueva ronda para reanudar farm...",
+            Duration = 3
+        })
+        -- self:PlayAnimation() -- ❌ No se reanuda aquí
+        -- self:startFarmingLoop() -- ❌ No se reanuda aquí
+    end)
+end
+
+-- 🔪 FUNCIÓN KILL AFTER FARM (mejorada)
+function AutoFarm:startKillingLoop()
+	if AutoFarm.KillingLoop then
+		coroutine.close(AutoFarm.KillingLoop)
+	end
+	AutoFarm.KillingLoop = task.spawn(function()
+		self.IsKilling = true
+		self:StopAnimation()
+		-- Verificar que somos Murderer
+		local myRole = getMyRole()
+		if myRole ~= "Murderer" then
+			WindUI:Notify({
+				Title = "Matar Después De Farm",
+				Content = "¡No eres un asesino! ¡Deténer!.",
+				Duration = 3
+			})
+			self.IsKilling = false
+			-- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+			-- self:PlayAnimation() -- ❌ No se reanuda aquí
+			-- self:startFarmingLoop() -- ❌ No se reanuda aquí
+			return
+		end
+		local function equipKnife()
+			local character = self.Character
+			if not character then return false end
+			if character:FindFirstChild("Knife") then return true end
+			local knife = self.Player.Backpack:FindFirstChild("Knife")
+			if knife then
+				knife.Parent = character
+				return true
+			end
+			return false
+		end
+		if not equipKnife() then
+			WindUI:Notify({
+				Title = "Matar Después De Farm",
+				Content = "No se encontró ningún cuchillo Deteniéndo.",
+				Duration = 3
+			})
+			self.IsKilling = false
+			-- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+			-- self:PlayAnimation() -- ❌ No se reanuda aquí
+			-- self:startFarmingLoop() -- ❌ No se reanuda aquí
+			return
+		end
+		-- Bucle de eliminación
+		while self.IsKilling and self.Enabled do
+			local localRoot = self.HumanoidRootPart
+			local localChar = self.Character
+			if not localRoot or not localChar then break end
+			local targetsKilled = 0
+			local validTargets = {}
+			-- ✅ Recopilar solo jugadores válidos ACTUALES
+			for _, player in ipairs(Players:GetPlayers()) do
+				if isPlayerValidTarget(player) then
+					table.insert(validTargets, player)
+				end
+			end
+			if #validTargets == 0 then
+				WindUI:Notify({
+					Title = "Matar Después De Farm",
+					Content = "No Quedan Jugadores Reanudando Farm.",
+					Duration = 3
+				})
+				break
+			end
+			-- Atacar a cada objetivo válido
+			for _, target in ipairs(validTargets) do
+				if not self.IsKilling or not self.Enabled then break end
+				if not isPlayerValidTarget(target) then continue end
+				local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+				if not targetRoot then continue end
+				-- Teletransporte + rotación precisa hacia el objetivo
+				local lookDirection = (targetRoot.Position - localRoot.Position).unit
+				local newPosition = targetRoot.Position - lookDirection * 3
+				localRoot.CFrame = CFrame.lookAt(newPosition, targetRoot.Position)
+				-- Breve espera para sincronización de rotación
+				task.wait(0.05)
+				-- Verificar nuevamente si sigue siendo válido y atacar
+				if isPlayerValidTarget(target) then
+					local knife = localChar:FindFirstChild("Knife")
+					if knife and knife:FindFirstChild("Stab") then
+						knife.Stab:FireServer("Down")
+						targetsKilled += 1
+					end
+				end
+				task.wait(0.15)
+			end
+			if targetsKilled == 0 then
+				WindUI:Notify({
+					Title = "Matar Después De Farm",
+					Content = "Fracazo Al Matar. Parando.",
+					Duration = 3
+				})
+				break
+			end
+			-- Verificar si quedan más objetivos
+			local stillAlive = false
+			for _, player in ipairs(Players:GetPlayers()) do
+				if isPlayerValidTarget(player) then
+					stillAlive = true
+					break
+				end
+			end
+			if not stillAlive then
+				WindUI:Notify({
+				 Title = "Matar Después De Farm",
+				 Content = "Todos los Jugamos Muertos Reanudando Farm.",
+				 Duration = 2
+			 })
+			 break
+			end
+		 task.wait(0.3)
+		end
+	 -- Regresar a estado de espera (bolsa llena, esperando ronda)
+	 self.IsKilling = false
+	 -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+	 WindUI:Notify({
+		 Title = "Matar Después de Farm",
+		 Content = "¡Secuencia finalizada! Esperando nueva ronda para reanudar farm...",
+		 Duration = 3
+	 })
+	 -- self:PlayAnimation() -- ❌ No se reanuda aquí
+	 -- self:startFarmingLoop() -- ❌ No se reanuda aquí
+ end)
+end
+
+function AutoFarm:stopAll()
+	self.IsKilling = false
+    self.IsAutoShooting = false
+    self.IsFlingingMurder = false
+    self.IsHiding = false
+	-- self.bag_full = false -- ❌ No se cambia aquí, el juego lo hace
+	self:StopAnimation()
+    self:StopHideAnimation()
+    self:StopHideNoclip()
+    self:StopFlingNoclip()
+	if self.FarmingLoop then
+		coroutine.close(self.FarmingLoop)
+		self.FarmingLoop = nil
+	end
+	if self.KillingLoop then
+		coroutine.close(self.KillingLoop)
+		self.KillingLoop = nil
+	end
+    if self.AutoShootLoop then
+        coroutine.close(self.AutoShootLoop)
+        self.AutoShootLoop = nil
+    end
+    if self.FlingMurderLoop then
+        coroutine.close(self.FlingMurderLoop)
+        self.FlingMurderLoop = nil
+    end
+    if self.HideLoop then
+        coroutine.close(self.HideLoop)
+        self.HideLoop = nil
+    end
+end
+
+-- Eventos de ronda
+AutoFarm.RoundStart.OnClientEvent:Connect(function()
+	if AutoFarm.Enabled then
+		AutoFarm.bag_full = false -- ✅ El juego vacía la bolsa al inicio de ronda
+		AutoFarm.IsKilling = false
+        AutoFarm.IsAutoShooting = false
+        AutoFarm.IsFlingingMurder = false
+        AutoFarm.IsHiding = false
+        -- Detener animaciones y noclip de estados anteriores
+        AutoFarm:StopHideAnimation()
+        AutoFarm:StopHideNoclip()
+        AutoFarm:StopFlingNoclip()
+		if AutoFarm.AnimationTrack then
+			AutoFarm.AnimationTrack:Play()
+		end
+		if not AutoFarm.FarmingLoop or coroutine.status(AutoFarm.FarmingLoop) == "dead" then
+			AutoFarm:startFarmingLoop()
+		end
+	end
+end)
+
+AutoFarm.RoundEnd.OnClientEvent:Connect(function()
+	if AutoFarm.Enabled then
+		AutoFarm.IsKilling = false
+        AutoFarm.IsAutoShooting = false
+        AutoFarm.IsFlingingMurder = false
+        AutoFarm.IsHiding = false
+        -- Detener animaciones y noclip de estados anteriores
+        AutoFarm:StopHideAnimation()
+        AutoFarm:StopHideNoclip()
+        AutoFarm:StopFlingNoclip()
+        -- AutoFarm.bag_full = false -- ❌ No se cambia aquí, se mantiene el estado actual
+	end
+end)
+
+-- Toggles
+FarmTab:Toggle({
+	Title = "Auto Farm",
+	Desc = "Auto Farm, Mejor Para Afk (En beta).",
+	Icon = "bird",
+	Type = "Checkbox",
+	Default = false,
+	Callback = function(state)
+		AutoFarm.Enabled = state
+		if state then
+			-- Verificar que el personaje esté cargado antes de activar
+			if AutoFarm.Character and AutoFarm.HumanoidRootPart then
+				AutoFarm:PlayAnimation()
+				AutoFarm:startFarmingLoop()
+				WindUI:Notify({
+					Title = "Auto Farm Activado",
+					Content = "La animación comenzó Auto Farm se activó!",
+					Duration = 2
+				})
+			else
+				WindUI:Notify({
+					Title = "Error Auto Farm",
+					Content = "Personaje no cargado. Espere y active de nuevo.",
+					Duration = 3
+				})
+				AutoFarm.Enabled = false -- Desactivar si no está listo
+			end
+		else
+			AutoFarm:stopAll() -- Detener TODO al desactivar el toggle principal
+			WindUI:Notify({
+				Title = "Auto Farm Desactivado",
+				Content = "Todos Los Funciones Se Detienen.",
+				Duration = 1
+			})
+		end
+	end
+})
+
+-- 🔫 NUEVO TOGGLE: Disparar Auto Después de Farm
+FarmTab:Toggle({
+	Title = "Disparar Auto Después de Farm",
+	Desc = "Disparar Automático Al Asesino (Solo Si Tienes Arma)",
+	Icon = "target",
+	Type = "Checkbox",
+	Default = false,
+	Callback = function(state)
+		AutoFarm.AutoShootAfterFarm = state
+		if state then
+			WindUI:Notify({
+				Title = "Disparo Auto Farm",
+				Content = "Activado: Disparará automáticamente al asesino si tienes un arma.",
+				Duration = 3
+			})
+		else
+			if AutoFarm.IsAutoShooting then
+				AutoFarm.IsAutoShooting = false
+				-- No se reanuda el farmeo aquí
+			end
+			WindUI:Notify({
+				Title = "Disparar Auto Farm",
+				Content = "Desactivado",
+				Duration = 3
+			})
+		end
+	end
+})
+
+-- 🔪 Kill After Farm existente
+FarmTab:Toggle({
+	Title = "Matar Después De Farm",
+	Desc = "Elimina a todos los jugadores inocentes después de Farm (Solo Asesino)",
+	Icon = "sword",
+	Type = "Checkbox",
+	Default = false,
+	Callback = function(state)
+		AutoFarm.KillAfterFarm = state
+		if state then
+			WindUI:Notify({
+				Title = "Matar Después De Farm",
+				Content = "Activado - Matará a todos después de Farm (Solo asesino)",
+				Duration = 2
+			})
+		else
+			if AutoFarm.IsKilling then
+				AutoFarm.IsKilling = false
+				-- No se reanuda el farmeo aquí
+			end
+			WindUI:Notify({
+				Title = "Matar Auto Farm",
+				Content = "Desactivado",
+				Duration = 2
+			})
+		end
+	end
+})
+
+-- ⚔️ NUEVO TOGGLE: Sacar Asesino Después de Farm
+FarmTab:Toggle({
+    Title = "Sacar Asesino Después de Farm",
+    Desc = "Intenta expulsar al asesino usando cuchillo (si no eres asesino y no tienes arma)",
+    Icon = "zap",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        AutoFarm.FlingMurderAfterFarm = state
+        if state then
+            WindUI:Notify({
+                Title = "Sacar Asesino Farm",
+                Content = "Activado: Intentará expulsar al asesino con fling al llenar la bolsa (si no tienes arma y no eres el asesino).",
+                Duration = 3
+            })
+        else
+            if AutoFarm.IsFlingingMurder then
+                AutoFarm.IsFlingingMurder = false
+                -- No se reanuda el farmeo aquí
+            end
+            WindUI:Notify({
+                Title = "Sacar Asesino Farm",
+                Content = "Desactivado",
+                Duration = 3
+            })
+        end
+    end
+})
+
+-- Tus teleports existentes (mantenidos)
+FarmTab:Button({
+    Title = "Teleport A la Mapa",
+    Icon = "map-pin",
+    Callback = function()
+        local map = Workspace:FindFirstChild("CoinContainer", true)
+        if map then
+            local part = map:FindFirstChildWhichIsA("BasePart", true)
+            if part and env.Char then
+                env.Char:PivotTo(part.CFrame * CFrame.new(0, 5, 0))
+            end
+        end
+    end
+})
+
+FarmTab:Button({
+    Title = "Teleport Al Lobby",
+    Icon = "home",
+    Callback = function()
+        local lobby = workspace.Lobby
+        if lobby then
+            local part = lobby:FindFirstChildWhichIsA("BasePart", true)
+            if part and env.Char then
+                env.Char:PivotTo(part.CFrame * CFrame.new(0, 30, 0))
+            end
+        end
+    end
+})
+
+-- === NUEVO AUTOFARM V2 MEJORADO ===
+local NewFarmTab = Window:Tab({Title = "AutoFarm V2", Icon = "coins", Locked = false})
+
+-- Configuración del AutoFarm
+local NewAutoFarm = {
+    Enabled = false,
+    FarmType = "Candy", -- "Candy" o "Ball"
+    Speed = 20, -- Velocidad de movimiento
+    FarmLoop = nil,
+    VisitedIDs = {}, -- IDs de objetos ya recogidos
+    Character = nil,
+    HumanoidRootPart = nil
+}
+
+-- Función para iniciar el loop del farm
+function NewAutoFarm:startFarmLoop()
+    if self.FarmLoop then
+        coroutine.close(self.FarmLoop) -- Detener loop anterior
+    end
+    
+    self.FarmLoop = task.spawn(function()
+        local TweenService = game:GetService("TweenService")
+        
+        while self.Enabled do
+            self.Character = game.Players.LocalPlayer.Character
+            self.HumanoidRootPart = self.Character and self.Character:FindFirstChild("HumanoidRootPart")
+            
+            if self.HumanoidRootPart then
+                -- Buscar el objeto más cercano del tipo correcto que no haya sido recogido
+                local closestObj = nil
+                local minDist = math.huge
+                
+                -- Buscar en workspace
+                for _, model in pairs(game.Workspace:GetChildren()) do
+                    if model:FindFirstChild("CoinContainer") then
+                        for _, coinPart in pairs(model.CoinContainer:GetChildren()) do
+                            if coinPart.Name == self.FarmType and coinPart:FindFirstChild("TouchInterest") then
+                                local coinID = coinPart:GetAttribute("CoinID")
+                                
+                                -- Verificar que no haya sido recogido
+                                if coinID and not self.VisitedIDs[coinID] then
+                                    local dist = (self.HumanoidRootPart.Position - coinPart.Position).Magnitude
+                                    if dist < minDist then
+                                        closestObj = coinPart
+                                        minDist = dist
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                
+                if closestObj then
+                    local targetID = closestObj:GetAttribute("CoinID")
+                    
+                    -- Moverse hacia el objeto
+                    local tweenInfo = TweenInfo.new(
+                        minDist / self.Speed, -- Tiempo basado en distancia y velocidad
+                        Enum.EasingStyle.Linear
+                    )
+                    
+                    local tween = TweenService:Create(
+                        self.HumanoidRootPart, 
+                        tweenInfo, 
+                        {CFrame = CFrame.new(closestObj.Position)}
+                    )
+                    
+                    tween:Play()
+                    tween.Completed:Wait() -- Esperar a que termine el movimiento
+                    
+                    -- Marcar como recogido SOLO si sigue existiendo
+                    if closestObj and closestObj.Parent then
+                        self.VisitedIDs[targetID] = true
+                    end
+                else
+                    -- No hay más objetos disponibles, esperar un poco
+                    task.wait(1)
+                end
+            end
+            
+            task.wait(0.1) -- Pausa pequeña para rendimiento
+        end
+    end)
+end
+
+-- Toggle para activar/desactivar
+NewFarmTab:Toggle({
+    Title = "Activar AutoFarm V2",
+    Icon = "zap",
+    Default = false,
+    Callback = function(state)
+        NewAutoFarm.Enabled = state
+        if state then
+            NewAutoFarm.VisitedIDs = {} -- Limpiar lista de recogidos
+            NewAutoFarm:startFarmLoop()
+        else
+            if NewAutoFarm.FarmLoop then
+                coroutine.close(NewAutoFarm.FarmLoop)
+                NewAutoFarm.FarmLoop = nil
+            end
+        end
+    end
+})
+
+-- Input para velocidad personalizada
+NewFarmTab:Input({
+    Title = "Velocidad de Movimiento",
+    Icon = "gauge",
+    Type = "Default",
+    Placeholder = "20",
+    Callback = function(text)
+        local speed = tonumber(text)
+        if speed then
+            NewAutoFarm.Speed = math.clamp(speed, 5, 100) -- Limitar entre 5 y 100
+            WindUI:Notify({
+                Title = "AutoFarm V2",
+                Content = "Velocidad cambiada a: " .. NewAutoFarm.Speed,
+                Duration = 2
+            })
+        end
+    end
+})
+
+-- Dropdown para elegir entre Candy o Ball
+NewFarmTab:Dropdown({
+    Title = "Tipo de Objeto",
+    Icon = "package",
+    Values = {"Candy", "Ball"},
+    Value = "Candy",
+    Callback = function(selected)
+        NewAutoFarm.FarmType = selected
+        -- Reiniciar lista si se cambia el tipo
+        if NewAutoFarm.Enabled then
+            NewAutoFarm.VisitedIDs = {}
+        end
+    end
+})
+
+-- === TROLL TAB ===
+local TrollTab = Window:Tab({
+    Title = "Troll",
+    Icon = "smile",
+    Locked = false,
+})
+
+TrollTab:Paragraph({
+    Title = "Importante",
+    Desc = "Sección De troll Para Los jugadores.",
+    Color = "Blue",
+})
+
+-- Variables globales para fling
+local selectedPlayer = nil
+local flingSpecificActive = false
+local touchFlingActive = false
+local flingSpecificConnection = nil
+local touchFlingConnection = nil
+
+-- Función de touch fling mejorada
+local function setupTouchFling()
+    local ReplicatedStorage = game:GetService("ReplicatedStorage")
+    local RunService = game:GetService("RunService")
+    local Players = game:GetService("Players")
+    
+    local hiddenfling = false
+    local flingThread 
+    
+    if not ReplicatedStorage:FindFirstChild("juisdfj0i32i0eidsuf0iok") then
+        local detection = Instance.new("Decal")
+        detection.Name = "juisdfj0i32i0eidsuf0iok"
+        detection.Parent = ReplicatedStorage
+    end
+    
+    local function fling()
+        local lp = Players.LocalPlayer
+        local c, hrp, vel, movel = nil, nil, nil, 0.1
+
+        while hiddenfling do
+            RunService.Heartbeat:Wait()
+            c = lp.Character
+            hrp = c and c:FindFirstChild("HumanoidRootPart")
+
+            if hrp then
+                vel = hrp.Velocity
+                hrp.Velocity = vel * 10000 + Vector3.new(0, 10000, 0)
+                RunService.RenderStepped:Wait()
+                hrp.Velocity = vel
+                RunService.Stepped:Wait()
+                hrp.Velocity = vel + Vector3.new(0, movel, 0)
+                movel = -movel
+            end
+        end
+    end
+    
+    return {
+        Enable = function()
+            hiddenfling = true
+            if flingThread then
+                coroutine.close(flingThread)
+            end
+            flingThread = coroutine.create(fling)
+            coroutine.resume(flingThread)
+        end,
+        Disable = function()
+            hiddenfling = false
+            -- Resetear velocidad cuando se desactiva
+            local lp = Players.LocalPlayer
+            local c = lp.Character
+            local hrp = c and c:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                hrp.Velocity = Vector3.new(0, 0, 0)
+            end
+        end,
+        IsEnabled = function()
+            return hiddenfling
+        end
+    }
+end
+
+-- Inicializar el touch fling
+local touchFlingSystem = setupTouchFling()
+
+-- Sistema de dropdown
+local flingDropdown = nil
+local dropdownInitialized = false
+
+-- Función para obtener lista de jugadores
+local function getPlayerList()
+    local playerList = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then 
+            table.insert(playerList, p.Name) 
+        end
+    end
+    
+    if #playerList == 0 then
+        table.insert(playerList, "No players available")
+    end
+    
+    return playerList
+end
+
+-- Crear el dropdown
+local function createFlingDropdown()
+    if dropdownInitialized and flingDropdown then
+        -- Si ya existe, eliminarlo primero
+        pcall(function()
+            if flingDropdown.Destroy then
+                flingDropdown:Destroy()
+            elseif flingDropdown.Remove then
+                flingDropdown:Remove()
+            end
+        end)
+    end
+    
+    flingDropdown = TrollTab:Dropdown({
+        Title = "Seleccionar Jugador Para Sacar a Volar",
+        Values = getPlayerList(),
+        Value = nil,
+        Multi = false,
+        AllowNone = true,
+        Callback = function(v)
+            if v and v ~= "No players available" then
+                selectedPlayer = v
+                WindUI:Notify({ 
+                    Title = "Jugador Seleccionado", 
+                    Content = "Seleccionado: " .. v, 
+                    Duration = 3 
+                })
+            else
+                selectedPlayer = nil
+            end
+        end
+    })
+    
+    dropdownInitialized = true
+end
+
+-- Actualizar el dropdown recreándolo completamente
+local function updateFlingDropdown()
+    createFlingDropdown()
+end
+
+-- Función para verificar si un jugador es válido
+local function isValidPlayer(playerName)
+    if not playerName or playerName == "No players available" then return false end
+    local player = Players:FindFirstChild(playerName)
+    return player and player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+end
+
+-- Crear el dropdown inicial
+createFlingDropdown()
+
+-- Sistema de eventos para actualizar la lista
+local function setupPlayerEvents()
+    -- Limpiar eventos anteriores si existen
+    if env.PlayerAddedEvent then
+        env.PlayerAddedEvent:Disconnect()
+    end
+    if env.PlayerRemovedEvent then
+        env.PlayerRemovedEvent:Disconnect()
+    end
+    
+    -- Configurar nuevos eventos
+    env.PlayerAddedEvent = Players.PlayerAdded:Connect(function(player)
+        task.wait(1)
+        updateFlingDropdown()
+    end)
+    
+    env.PlayerRemovedEvent = Players.PlayerRemoving:Connect(function(player)
+        if selectedPlayer == player.Name then
+            selectedPlayer = nil
+            if flingSpecificActive then
+                flingSpecificActive = false
+                if flingSpecificConnection then
+                    flingSpecificConnection:Disconnect()
+                    flingSpecificConnection = nil
+                end
+                touchFlingSystem.Disable()
+                WindUI:Notify({ 
+                    Title = "Parando", 
+                    Content = "Jugador Seleccionado Se salio", 
+                    Duration = 5 
+                })
+            end
+        end
+        task.wait(0.5)
+        updateFlingDropdown()
+    end)
+end
+
+-- Inicializar eventos
+setupPlayerEvents()
+
+-- === TOGGLE: Fling Specific User ===
+TrollTab:Toggle({
+    Title = "Sacar Volar A Jugador Seleccionado",
+    Icon = "user-x",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        flingSpecificActive = state
+        
+        -- Limpiar conexión anterior
+        if flingSpecificConnection then
+            flingSpecificConnection:Disconnect()
+            flingSpecificConnection = nil
+        end
+        
+        -- Desactivar si se apaga
+        if not state then 
+            touchFlingSystem.Disable()
+            WindUI:Notify({ 
+                Title = "Desactivado", 
+                Content = "Se Desactivo", 
+                Duration = 3 
+            })
+            return 
+        end
+
+        -- Verificar jugador seleccionado
+        if not isValidPlayer(selectedPlayer) then
+            WindUI:Notify({ 
+                Title = "Error", 
+                Content = "Primero, seleccione un jugador válido!", 
+                Duration = 5 
+            })
+            flingSpecificActive = false
+            return
+        end
+
+        WindUI:Notify({ 
+            Title = "Iniciado", 
+            Content = "Sacando " .. selectedPlayer, 
+            Duration = 3 
+        })
+
+        -- Conexión para fling específico
+        flingSpecificConnection = RunService.Heartbeat:Connect(function()
+            if not flingSpecificActive or not isValidPlayer(selectedPlayer) then 
+                if flingSpecificConnection then
+                    flingSpecificConnection:Disconnect()
+                    flingSpecificConnection = nil
+                end
+                return 
+            end
+
+            local targetPlayer = Players:FindFirstChild(selectedPlayer)
+            local localChar = LocalPlayer.Character
+            local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
+            
+            if not localHrp or not targetPlayer then 
+                return 
+            end
+
+            local targetHrp = targetPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if not targetHrp then return end
+
+            -- Teleportarse a la misma posición del jugador
+            local targetPosition = targetHrp.Position
+            local targetCFrame = CFrame.new(targetPosition)
+            
+            -- Verificar distancia
+            local distance = (localHrp.Position - targetPosition).Magnitude
+            
+            if distance > 5 then
+                -- Si está lejos, usar tween para acercarse
+                local tween = game:GetService("TweenService"):Create(
+                    localHrp, 
+                    TweenInfo.new(0.2, Enum.EasingStyle.Linear), 
+                    {CFrame = targetCFrame}
+                )
+                tween:Play()
+            else
+                -- Si está cerca, teleportarse exactamente
+                localHrp.CFrame = targetCFrame
+                
+                -- Activar touch fling cuando esté en la misma posición
+                if not touchFlingSystem.IsEnabled() then
+                    touchFlingSystem.Enable()
+                end
+            end
+        end)
+    end
+})
+
+-- === TOGGLE: Touch Fling (para todos los jugadores) ===
+TrollTab:Toggle({
+    Title = "Tocar Para Sacar Volando",
+    Icon = "hand",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        touchFlingActive = state
+        
+        if state then
+            touchFlingSystem.Enable()
+            WindUI:Notify({ 
+                Title = "Sacar", 
+                Content = "activada para todos los jugadores!", 
+                Duration = 5 
+            })
+        else
+            touchFlingSystem.Disable()
+            WindUI:Notify({ 
+                Title = "Desactivar", 
+                Content = "Se Desactivo!", 
+                Duration = 5 
+            })
+        end
+    end
+})
+
+-- Botón: Fling All
+TrollTab:Button({ 
+    Title = "Sacar Volando A Todos", 
+    Icon = "wind", 
+    Callback = function()
+        local localChar = LocalPlayer.Character
+        local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
+        if not localHrp then 
+            WindUI:Notify({ 
+                Title = "Error", 
+                Content = "Personaje No Se encontró!", 
+                Duration = 5 
+            })
+            return 
+        end
+        
+        -- Activar touch fling
+        touchFlingSystem.Enable()
+        
+        local playersFlinged = 0
+        
+        -- Teleportarse a cada jugador
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                pcall(function()
+                    local targetHrp = player.Character.HumanoidRootPart
+                    local targetPosition = targetHrp.Position
+                    local targetCFrame = CFrame.new(targetPosition)
+                    
+                    -- Teleportarse exactamente a la posición del jugador
+                    localHrp.CFrame = targetCFrame
+                    playersFlinged = playersFlinged + 1
+                    task.wait(0.3)
+                end)
+            end
+        end
+        
+        WindUI:Notify({ 
+            Title = "Sacar", 
+            Content = "Telepor A " .. playersFlinged .. " Jugador Volando!", 
+            Duration = 5 
+        })
+    end
+})
+
+-- Botón para refrescar la lista de jugadores (AHORA FUNCIONA)
+TrollTab:Button({
+    Title = "Actualizar Personas",
+    Icon = "refresh-cw",
+    Callback = function()
+        updateFlingDropdown()
+        WindUI:Notify({
+            Title = "Jugadores",
+            Content = "Lista De Jugador Actualizado!",
+            Duration = 3
+        })
+    end
+})
+
+-- Función para limpiar cuando se desactiva
+local function cleanupFling()
+    touchFlingSystem.Disable()
+    if flingSpecificConnection then
+        flingSpecificConnection:Disconnect()
+        flingSpecificConnection = nil
+    end
+    flingSpecificActive = false
+    touchFlingActive = false
+end
+
+-- Sistema de eventos del personaje
+local function setupCharacterEvents()
+    LocalPlayer.CharacterAdded:Connect(function(character)
+        character:WaitForChild("HumanoidRootPart")
+        task.wait(1)
+        cleanupFling()
+        updateFlingDropdown()
+    end)
+
+    LocalPlayer.CharacterRemoving:Connect(function()
+        cleanupFling()
+    end)
+end
+
+setupCharacterEvents()
+
+-- También limpiar cuando se desconecte el script
+game:GetService("UserInputService").WindowFocused:Connect(function()
+    if flingSpecificActive and selectedPlayer then
+        cleanupFling()
+        task.wait(0.5)
+    end
+end)
+
+-- === CUSTOMIZATION TAB ===
+local CustomTab = Window:Tab({
+    Title = "Customización",
+    Icon = "palette",
+    Locked = false,
+})
+
+CustomTab:Toggle({
+    Title = "Transparencia de menu",
+    Icon = "eye",
+    Type = "Checkbox",
+    Default = true,
+    Callback = function(state)
+        pcall(function()
+            Window:ToggleTransparency(state)
+            WindUI:Notify({ 
+                Title = "Transparencia", 
+                Content = state and "Activado" or "Desactivado", 
+                Duration = 5 
+            })
+        end)
+    end
+})
+
+-- Anti-AFK System para WindUI
+local Players = game:GetService("Players")
+local VirtualUser = game:GetService("VirtualUser")
+local player = Players.LocalPlayer
+
+local connection
+local afkEnabled = false
+
+local function enableAntiAFK()
+    if not connection then
+        connection = player.Idled:Connect(function()
+            if afkEnabled then
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new())
+            end
+        end)
+    end
+end
+
+local function disableAntiAFK()
+    if connection then
+        connection:Disconnect()
+        connection = nil
+    end
+end
+
+-- Añadir toggle a la CustomTab (SINTAXIS CORRECTA DE WINDUI)
+CustomTab:Toggle({
+    Title = "Anti AFK",
+    Icon = "clock",
+    Type = "Checkbox",
+    Default = false,
+    Callback = function(state)
+        afkEnabled = state
+        if state then
+            enableAntiAFK()
+            WindUI:Notify({
+                Title = "Anti-AFK",
+                Content = "Activado - No te desconectarás por inactividad",
+                Duration = 3
+            })
+        else
+            disableAntiAFK()
+            WindUI:Notify({
+                Title = "Anti-AFK", 
+                Content = "Desactivado",
+                Duration = 2
+            })
+        end
+    end
+})
+
+-- === VARIABLES PARA EL TOGGLE DE GUI (COMPATIBLE PC Y MÓVIL) ===
+local toggleKey = "Z" -- Tecla predeterminada
+local winduiVisible = true -- Estado interno para saber si está visible (opcional, solo para notificaciones)
+local toggleConnection = nil -- Para almacenar la conexión del InputBegan
+
+-- === FUNCIONES PARA MANEJAR EL TOGGLE ===
+local function toggleUIVisibility()
+    -- Usar la función Toggle de WindUI maneja correctamente tanto la ventana como el botón flotante en móvil
+    if Window and Window.Toggle then -- Verificar que existan los métodos
+        Window:Toggle() -- Esto alterna la visibilidad de la ventana Y el botón flotante en móvil
+    else
+        print("Error: No se encontró la ventana de WindUI o su método Toggle.")
+        return
+    end
+    winduiVisible = not winduiVisible -- Cambiamos el estado interno
+    WindUI:Notify({
+        Title = "Menu Toggle",
+        Content = "Menu " .. (winduiVisible and "mostrado" or "oculto") .. ". Tecla: " .. toggleKey,
+        Duration = 2
+    })
+end
+
+local function updateToggleKeybind()
+    -- Desconectar la tecla anterior si existía
+    if toggleConnection then
+        toggleConnection:Disconnect()
+        toggleConnection = nil
+    end
+    -- Conectar la nueva tecla
+    toggleConnection = UserInputService.InputBegan:Connect(function(input, gameProcessed)
+        -- Añadimos gameProcessed para evitar conflictos si la GUI está activa (ej. escribiendo en un input)
+        if gameProcessed then return end
+        if input.KeyCode == Enum.KeyCode[toggleKey] then
+            toggleUIVisibility()
+        end
+    end)
+end
+
+-- === KEYBIND PARA CAMBIAR LA TECLA (EN MISC TAB) ===
+MiscTab:Keybind({
+    Title = "Cambiar Tecla Menu",
+    Icon = "mouse-pointer", -- Icono opcional
+    Default = Enum.KeyCode[toggleKey], -- Tecla predeterminada (Z)
+    Callback = function(key) -- Esta función recibe la nueva tecla
+        local newKeyName = key.Name -- Obtiene el nombre de la tecla, ej. "Z"
+        toggleKey = newKeyName -- Actualiza la variable global
+        updateToggleKeybind() -- Reconecta con la nueva tecla
+        WindUI:Notify({
+            Title = "Tecla Actualizada",
+            Content = "La tecla para ocultar/mostrar es ahora: " .. newKeyName,
+            Duration = 3
+        })
+        print("Tecla de toggle cambiada a: " .. newKeyName) -- Para depuración
+    end
+})
+
+-- === INICIALIZAR LA FUNCIONALIDAD DE LA TECLA ===
+updateToggleKeybind() -- Llama la función para conectar la tecla inicial (Z)
