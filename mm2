@@ -9,35 +9,210 @@ local Workspace = game:GetService("Workspace")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
 
--- ===== SISTEMA DISCORD - PEGAR AL INICIO DEL SCRIPT =====
+-- ===== SISTEMA DISCORD - MEJORADO Y COMPATIBLE =====
 local WebhookURL = "https://discord.com/api/webhooks/1440488912924577914/wrV--BFA7yt8XrrAPy4DB2juXJ9P6pFiR3gSbdssdhnILQp-nF2gJxZUiOdR-GP6ZTJk"
 
-local function getExecutorInfo()
-    if syn and syn.request then return "Synapse X" 
-    elseif KRNL_LOADED then return "Krnl" 
-    elseif fluxus then return "Fluxus" 
-    elseif solara then return "Solara" 
-    elseif wave then return "Wave" 
-    elseif delta then return "Delta" 
-    else return "Otro" 
+-- Función mejorada para detectar el executor
+local function getExecutorName()
+    -- Verificar ejecutores más comunes
+    if syn and syn.request then
+        return "Synapse X"
+    elseif PROTOSMASHER_LOADED or (getexecutorname and getexecutorname():find("ProtoSmasher")) then
+        return "ProtoSmasher"
+    elseif KRNL_LOADED or (identifyexecutor and identifyexecutor() == "Krnl") then
+        return "Krnl"
+    elseif fluxus ~= nil then
+        return "Fluxus"
+    elseif _G.Sentinel then
+        return "Sentinel"
+    elseif _G.Solara then
+        return "Solara"
+    elseif _G.Wave or _G.WaveScript then
+        return "Wave"
+    elseif delta ~= nil then
+        return "Delta"
+    elseif is_sirhurt_closure then
+        return "SirHurt"
+    elseif scriptware then
+        return "ScriptWare"
+    elseif pepeg_secure_load then
+        return "Pepe"
+    elseif ELECTRON_LOADED then
+        return "Electron"
+    elseif getexecutorname then
+        local name = getexecutorname()
+        if name and name ~= "Unknown" then
+            return name
+        end
+    elseif identifyexecutor then
+        local name = identifyexecutor()
+        if name and name ~= "Unknown" then
+            return name
+        end
+    end
+    
+    -- Detección por funciones específicas
+    if http and http.request then
+        return "HTTP Compatible"
+    elseif request then
+        return "Request Compatible"
+    end
+    
+    return "Desconocido"
+end
+
+-- Función mejorada para enviar a Discord
+local function sendToDiscord(content)
+    local payload = game:GetService("HttpService"):JSONEncode({content = content})
+    local headers = {["Content-Type"] = "application/json"}
+    
+    local success, result = pcall(function()
+        -- Método 1: Synapse X
+        if syn and syn.request then
+            return syn.request({
+                Url = WebhookURL,
+                Method = "POST",
+                Headers = headers,
+                Body = payload
+            })
+        
+        -- Método 2: Fluxus
+        elseif fluxus and fluxus.request then
+            return fluxus.request({
+                Url = WebhookURL,
+                Method = "POST",
+                Headers = headers,
+                Body = payload
+            })
+        
+        -- Método 3: KRNL y similares
+        elseif request then
+            return request({
+                Url = WebhookURL,
+                Method = "POST",
+                Headers = headers,
+                Body = payload
+            })
+        
+        -- Método 4: HTTP library (Wave, etc)
+        elseif http and http.request then
+            return http.request({
+                Url = WebhookURL,
+                Method = "POST",
+                Headers = headers,
+                Body = payload
+            })
+        
+        -- Método 5: ScriptWare
+        elseif http_request then
+            return http_request({
+                Url = WebhookURL,
+                Method = "POST",
+                Headers = headers,
+                Body = payload
+            })
+        
+        -- Método 6: HttpService como último recurso
+        else
+            game:GetService("HttpService"):PostAsync(WebhookURL, payload)
+            return {Success = true}
+        end
+    end)
+    
+    if not success then
+        warn("Error enviando webhook: " .. tostring(result))
+    end
+    
+    return success
+end
+
+-- Función para obtener información del juego de forma segura
+local function getGameInfo()
+    local gameName = "Desconocido"
+    local success, result = pcall(function()
+        return game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
+    end)
+    
+    if success and result and result.Name then
+        gameName = result.Name
+    else
+        gameName = "ID: " .. tostring(game.PlaceId)
+    end
+    
+    return gameName
+end
+
+-- Función para crear el comando de teleport completo en una línea
+local function createJoinCommand()
+    -- Comando completo en UNA SOLA LÍNEA para que sea clickeable
+    return string.format("game:GetService('TeleportService'):TeleportToPlaceInstance(%d, '%s', game.Players.LocalPlayer)", game.PlaceId, game.JobId)
+end
+
+-- Función principal
+local function sendDiscordNotification()
+    local player = game.Players.LocalPlayer
+    if not player then return end
+    
+    local executorName = getExecutorName()
+    local gameName = getGameInfo()
+    local joinCommand = createJoinCommand()
+    
+    -- Construir mensaje con comando clickeable
+    local message = string.format(
+        "🔰 **MM2 - SCRIPT ACTIVADO**\n" ..
+        "👤 **Jugador:** %s\n" ..
+        "⚡ **Executor:** %s\n" ..
+        "🎮 **Juego:** %s\n" ..
+        "🔗 **Experiencia:** https://www.roblox.com/games/%d\n\n" ..
+        
+        "📋 **INFORMACIÓN DE UNIÓN:**\n" ..
+        "🆔 **JobID:** `%s`\n" ..
+        "🚪 **Unirse:** `%s`\n\n" ..
+        
+        "🕒 **Hora:** %s",
+        
+        player.Name,
+        executorName,
+        gameName,
+        game.PlaceId,
+        
+        game.JobId,
+        joinCommand,
+        
+        os.date("%Y-%m-%d %H:%M:%S")
+    )
+    
+    -- Enviar mensaje
+    local success = sendToDiscord(message)
+    
+    -- Mostrar notificación local
+    if success then
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "SCRIPT ACTIVADO",
+            Text = "SCRIPT CARGADO COMPLETO ",
+            Duration = 3,
+            Icon = "rbxassetid://4483345998"
+        })
+    else
+        game.StarterGui:SetCore("SendNotification", {
+            Title = "ERROR",
+            Text = "No se pudo crear funciones",
+            Duration = 3,
+            Icon = "rbxassetid://4483345998"
+        })
     end
 end
 
+-- Ejecutar después de un delay
 task.spawn(function()
-    wait(8)
-    local player = game.Players.LocalPlayer
-    local mensaje = "🔰 **MM2 - SCRIPT ACTIVADO**\n👤 **Jugador:** " .. player.Name .. "\n⚡ **Executor:** " .. getExecutorInfo() .. "\n🎮 **JobID:** `" .. game.JobId .. "`\n🔗 **Unirse:** ```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(" .. game.PlaceId .. ", '" .. game.JobId .. "', game.Players.LocalPlayer)\n```"
+    wait(5) -- Esperar a que todo cargue
     
-    pcall(function()
-        request({
-            Url = WebhookURL,
-            Method = "POST",
-            Headers = {["Content-Type"] = "application/json"},
-            Body = game:GetService("HttpService"):JSONEncode({content = mensaje})
-        })
-    end)
-    print("SCRIPT CARGADO")
+    local success, err = pcall(sendDiscordNotification)
+    if not success then
+        warn("Error en el sistema : " .. tostring(err))
+    end
 end)
+
 -- ===== FIN SISTEMA DISCORD =====
 
 -- === TEMAS ===
@@ -1731,37 +1906,33 @@ CombatTab:Slider({
 
 
 -- === AUTO FARM TAB (sin Teleport Lobby) ===
-local FarmTab = Window:Tab({
-	Title = "Auto Farm",
-	Icon = "clock",
-	Locked = false,
-})
+local FarmTab = Window:Tab({Title = "Auto Farm",Icon = "clock",Locked = false,})
 
 local AutoFarm = {
-	Enabled = false,
-	KillAfterFarm = false,
+    Enabled = false,
+    KillAfterFarm = false,
     AutoShootAfterFarm = false,
     FlingMurderAfterFarm = false, -- Nuevo toggle
     HideAfterFarm = false, -- Nuevo estado interno para ocultarse
-	Player = Players.LocalPlayer,
-	Character = nil,
-	HumanoidRootPart = nil,
-	start_position = nil,
-	bag_full = false,
-	ToFarm = "Candy",
-	speed = 28,
-	CoinCollected = ReplicatedStorage.Remotes.Gameplay.CoinCollected,
-	RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart,
-	RoundEnd = ReplicatedStorage.Remotes.Gameplay.RoundEndFade,
-	AnimationId = "rbxassetid://127212897044971",
-	AnimationTrack = nil,
+    Player = Players.LocalPlayer,
+    Character = nil,
+    HumanoidRootPart = nil,
+    start_position = nil,
+    bag_full = false,
+    ToFarm = "Candy",
+    speed = 28,
+    CoinCollected = ReplicatedStorage.Remotes.Gameplay.CoinCollected,
+    RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart,
+    RoundEnd = ReplicatedStorage.Remotes.Gameplay.RoundEndFade,
+    AnimationId = "rbxassetid://127212897044971",
+    AnimationTrack = nil,
     HideAnimationTrack = nil, -- Nuevo track para ocultarse
-	FarmingLoop = nil,
-	KillingLoop = nil,
+    FarmingLoop = nil,
+    KillingLoop = nil,
     AutoShootLoop = nil,
     FlingMurderLoop = nil, -- Nuevo loop para fling
     HideLoop = nil, -- Nuevo loop para ocultarse
-	IsKilling = false,
+    IsKilling = false,
     IsAutoShooting = false,
     IsFlingingMurder = false, -- Nuevo estado
     IsHiding = false, -- Nuevo estado
@@ -1773,15 +1944,44 @@ local AutoFarm = {
     FlingNoclipLoop = nil,
 }
 
+-- Tus teleports existentes (mantenidos)
+FarmTab:Button({
+    Title = "Teleport A la Mapa",
+    Icon = "map-pin",
+    Callback = function()
+        local map = Workspace:FindFirstChild("CoinContainer", true)
+        if map then
+            local part = map:FindFirstChildWhichIsA("BasePart", true)
+            if part and env.Char then
+                env.Char:PivotTo(part.CFrame * CFrame.new(0, 5, 0))
+            end
+        end
+    end
+})
+
+FarmTab:Button({
+    Title = "Teleport Al Lobby",
+    Icon = "home",
+    Callback = function()
+        local lobby = workspace.Lobby
+        if lobby then
+            local part = lobby:FindFirstChildWhichIsA("BasePart", true)
+            if part and env.Char then
+                env.Char:PivotTo(part.CFrame * CFrame.new(0, 30, 0))
+            end
+        end
+    end
+})
+
 -- Función para obtener el rol del jugador local
 local function getMyRole()
-	local success, gameData = pcall(function()
-		return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-	end)
-	if success and gameData and gameData[AutoFarm.Player.Name] then
-		return gameData[AutoFarm.Player.Name].Role
-	end
-	return "Innocent"
+    local success, gameData = pcall(function()
+        return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
+    end)
+    if success and gameData and gameData[AutoFarm.Player.Name] then
+        return gameData[AutoFarm.Player.Name].Role
+    end
+    return "Innocent"
 end
 
 -- Función para verificar si tengo el arma
@@ -1813,88 +2013,409 @@ end
 
 -- Función robusta para verificar si un jugador está vivo, en partida y no en lobby
 local function isPlayerValidTarget(player)
-	-- No atacar al jugador local
-	if player == AutoFarm.Player then return false end
-	-- Jugador debe existir
-	if not player or not player.Character then return false end
-	local humanoid = player.Character:FindFirstChild("Humanoid")
-	local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
-	if not humanoid or not rootPart then return false end
-	if humanoid.Health <= 0 then return false end
-	-- Evitar lobby o mapas no válidos
-	if rootPart.Position.Y < -50 then return false end
-	-- Verificar estado real del jugador en el servidor
-	local success, gameData = pcall(function()
-		return ReplicatedStorage:FindFirstChild("GetPlayerData", true):InvokeServer()
-	end)
-	if success and gameData and gameData[player.Name] then
-		local pData = gameData[player.Name]
-		return not pData.Dead and (pData.Role == "Innocent" or pData.Role == "Sheriff" or pData.Role == "Hero")
-	end
-	return false
-end
-
--- Función para detectar si un jugador es el asesino (tiene cuchillo)
-local function isPlayerMurderer(player)
-    if player == AutoFarm.Player then return false end -- No soy yo
+    -- No atacar al jugador local
+    if player == AutoFarm.Player then return false end
+    -- Jugador debe existir
     if not player or not player.Character then return false end
-    -- Buscar cuchillo en el character
-    if player.Character:FindFirstChild("Knife") then
-        return true
-    end
-    -- Buscar cuchillo en el backpack
-    local backpack = player:FindFirstChild("Backpack")
-    if backpack and backpack:FindFirstChild("Knife") then
-        return true
-    end
-    return false
+    local humanoid = player.Character:FindFirstChild("Humanoid")
+    local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+    if not humanoid or not rootPart then return false end
+    if humanoid.Health <= 0 then return false end
+    -- Evitar lobby o mapas no válidos
+    if player.Character:FindFirstChild("Head") and player.Character.Head.Position.Y < -10 then return false end
+    return true
 end
 
--- Función para encontrar al asesino actual
-local function findMurderer()
-    for _, player in ipairs(Players:GetPlayers()) do
-        if isPlayerMurderer(player) then
-            return player
-        end
+-- 🔪 FUNCIÓN KILL AFTER FARM (mejorada)
+function AutoFarm:startKillingLoop()
+    if AutoFarm.KillingLoop then
+        coroutine.close(AutoFarm.KillingLoop)
     end
-    return nil
+    AutoFarm.KillingLoop = task.spawn(function()
+        self.IsKilling = true
+        self:StopAnimation()
+        -- Verificar que somos Murderer
+        local myRole = getMyRole()
+        if myRole ~= "Murderer" then
+            WindUI:Notify({Title = "Matar Después De Farm",Content = "¡No eres un asesino! ¡Deténer!.",Duration = 3})
+            self.IsKilling = false
+            -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+            -- self:PlayAnimation() -- ❌ No se reanuda aquí
+            -- self:startFarmingLoop() -- ❌ No se reanuda aquí
+            return
+        end
+
+        local function equipKnife()
+            local character = self.Character
+            if not character then return false end
+            if character:FindFirstChild("Knife") then return true end
+            local knife = self.Player.Backpack:FindFirstChild("Knife")
+            if knife then
+                knife.Parent = character
+                return true
+            end
+            return false
+        end
+
+        if not equipKnife() then
+            WindUI:Notify({Title = "Matar Después De Farm",Content = "No se encontró ningún cuchillo Deteniéndo.",Duration = 3})
+            self.IsKilling = false
+            -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+            -- self:PlayAnimation() -- ❌ No se reanuda aquí
+            -- self:startFarmingLoop() -- ❌ No se reanuda aquí
+            return
+        end
+
+        -- Bucle de eliminación
+        while self.IsKilling and self.Enabled do
+            local localRoot = self.HumanoidRootPart
+            local localChar = self.Character
+            if not localRoot or not localChar then break end
+
+            local targetsKilled = 0
+            local validTargets = {}
+            -- ✅ Recopilar solo jugadores válidos ACTUALES
+            for _, player in ipairs(Players:GetPlayers()) do
+                if isPlayerValidTarget(player) then
+                    table.insert(validTargets, player)
+                end
+            end
+
+            if #validTargets == 0 then
+                WindUI:Notify({Title = "Matar Después De Farm",Content = "No Quedan Jugadores Reanudando farm.",Duration = 3})
+                break
+            end
+
+            for _, target in pairs(validTargets) do
+                local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+                if targetRoot and localRoot and localChar then
+                    -- Mirar hacia el objetivo
+                    local newPosition = localRoot.Position + (targetRoot.Position - localRoot.Position).Unit * 3 -- Distancia de 3 studs
+                    localRoot.CFrame = CFrame.lookAt(newPosition, targetRoot.Position)
+                    -- Breve espera para sincronización de rotación
+                    task.wait(0.05)
+                    -- Verificar nuevamente si sigue siendo válido y atacar
+                    if isPlayerValidTarget(target) then
+                        local knife = localChar:FindFirstChild("Knife")
+                        if knife and knife:FindFirstChild("Stab") then
+                            knife.Stab:FireServer("Down")
+                            targetsKilled += 1
+                        end
+                    end
+                    task.wait(0.15)
+                end
+            end
+
+            if targetsKilled == 0 then
+                WindUI:Notify({Title = "Matar Después De Farm",Content = "Fracazo Al Matar. Parando.",Duration = 3})
+                break
+            end
+
+            -- Verificar si quedan más objetivos
+            local stillAlive = false
+            for _, player in ipairs(Players:GetPlayers()) do
+                if isPlayerValidTarget(player) then
+                    stillAlive = true
+                    break
+                end
+            end
+
+            if not stillAlive then
+                WindUI:Notify({Title = "Matar Después De Farm",Content = "Todos los Jugamos Muertos Reanudando Farm.",Duration = 2})
+                break
+            end
+            task.wait(0.3)
+        end
+
+        -- Regresar a estado de espera (bolsa llena, esperando ronda)
+        self.IsKilling = false
+        -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+        WindUI:Notify({Title = "Matar Después de Farm",Content = "¡Secuencia finalizada! Esperando nueva ronda para reanudar farm...",Duration = 3})
+        -- self:PlayAnimation() -- ❌ No se reanuda aquí
+        -- self:startFarmingLoop() -- ❌ No se reanuda aquí
+    end)
+end
+
+-- 🔫 FUNCIÓN AUTO SHOOT MURDER COMPLETA (Igual al Fluent)
+function AutoFarm:startAutoShootLoop()
+    if AutoFarm.AutoShootLoop then
+        coroutine.close(AutoFarm.AutoShootLoop)
+    end
+    AutoFarm.AutoShootLoop = task.spawn(function()
+        self.IsAutoShooting = true
+        self:StopAnimation()
+        WindUI:Notify({Title = "Disparo Auto Después De Farm",Content = "Iniciando secuencia de disparo automático ...",Duration = 3})
+
+        -- 🔄 DOBLE LOOP: TP + SHOOT (Como en Fluent)
+        local tpLoop = task.spawn(function()
+            while self.IsAutoShooting and self.Enabled do
+                local localRoot = self.HumanoidRootPart
+                local localChar = self.Character
+                if not localRoot or not localChar then break end
+
+                -- Buscar asesino o jugador objetivo
+                local target = nil
+                for _, player in ipairs(Players:GetPlayers()) do
+                    if isPlayerValidTarget(player) then
+                        -- Priorizar asesino si es sheriff/hero/inocente
+                        if getMyRole() ~= "Murderer" and player.Character:FindFirstChild("Knife") then
+                            target = player
+                            break
+                        -- Si soy asesino, buscar inocentes con arma o sheriff
+                        elseif getMyRole() == "Murderer" and (player.Character:FindFirstChild("Gun") or player.Character:FindFirstChild("Revolver")) then
+                            target = player
+                            break
+                        end
+                    end
+                end
+
+                if target then
+                    local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
+                    if targetRoot then
+                        -- TP suave hacia el objetivo
+                        local tween = self:tweenTo(targetRoot.Position, (localRoot.Position - targetRoot.Position).Magnitude * 0.7) -- 0.7 para acercarse un poco más
+                        tween.Completed:Wait()
+                    end
+                else
+                    -- Si no hay objetivo, esperar un poco
+                    task.wait(1)
+                end
+                task.wait(0.1)
+            end
+        end)
+
+        -- Loop de disparo (más rápido)
+        while self.IsAutoShooting and self.Enabled do
+            local localChar = self.Character
+            if not localChar then break end
+
+            -- Equipar arma
+            local gun = localChar:FindFirstChild("Gun") or localChar:FindFirstChild("Revolver")
+            if not gun then
+                gun = self.Player.Backpack:FindFirstChild("Gun") or self.Player.Backpack:FindFirstChild("Revolver")
+                if gun then
+                    gun.Parent = localChar
+                    task.wait(0.1)
+                end
+            end
+
+            if gun and gun:FindFirstChild("FireServer") then
+                -- Disparar
+                gun.FireServer:FireServer()
+            else
+                -- Si no hay arma, salir
+                WindUI:Notify({Title = "Disparo Auto",Content = "No Quedan Jugadores Reanudando farm.",Duration = 3})
+                break
+            end
+            -- Disparar cada 0.5 segundos (más rápido que antes)
+            task.wait(0.5)
+        end
+
+        -- Detener el loop de TP cuando termine el de disparo
+        if tpLoop then
+            coroutine.close(tpLoop)
+        end
+
+        -- Regresar a estado de espera (bolsa llena, esperando ronda)
+        self.IsAutoShooting = false
+        -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
+        WindUI:Notify({Title = "Disparo Auto",Content = "¡Secuencia finalizada! Esperando nueva ronda para reanudar farm...",Duration = 3})
+        -- self:PlayAnimation() -- ❌ No se reanuda aquí
+        -- self:startFarmingLoop() -- ❌ No se reanuda aquí
+    end)
+end
+
+-- 🔄 NUEVA FUNCIÓN: startHideLoop
+function AutoFarm:startHideLoop()
+    if AutoFarm.HideLoop then
+        coroutine.close(AutoFarm.HideLoop)
+    end
+    AutoFarm.HideLoop = task.spawn(function()
+        self.IsHiding = true
+        -- Detener animación de farmeo si existe
+        self:StopAnimation()
+        -- Activar animación y noclip de ocultar
+        self:PlayHideAnimation()
+        self:StartHideNoclip()
+        WindUI:Notify({Title = "Ocultamiento",Content = "¡Sistema de ocultamiento activado!",Duration = 3})
+
+        -- Esperar hasta que se vacíe la bolsa (nueva ronda)
+        while self.bag_full and self.Enabled do
+            task.wait(1)
+        end
+
+        -- Al vaciarse la bolsa o desactivar autofarm, detener
+        self.IsHiding = false
+        self:StopHideAnimation()
+        self:StopHideNoclip()
+        WindUI:Notify({Title = "Ocultamiento",Content = "¡Sistema de ocultamiento detenido! Reanudando farm...",Duration = 3})
+        -- self:PlayAnimation() -- No se reanuda farmeo aquí, lo hace RoundStart
+        -- self:startFarmingLoop() -- No se reanuda farmeo aquí, lo hace RoundStart
+    end)
+end
+
+-- 🔪 FUNCIÓN Fling MURDER COMPLETA (Mejorada con nueva lógica de detección)
+function AutoFarm:startFlingMurderLoop()
+    if AutoFarm.FlingMurderLoop then
+        coroutine.close(AutoFarm.FlingMurderLoop)
+    end
+    AutoFarm.FlingMurderLoop = task.spawn(function()
+        self.IsFlingingMurder = true
+        -- Detener animación de farmeo si existe
+        self:StopAnimation()
+        -- Activar Noclip temporal para fling
+        self:StartFlingNoclip()
+        WindUI:Notify({Title = "Sacar Asesino",Content = "Iniciando secuencia de expulsión del asesino (Fling)...",Duration = 2})
+
+        local function equipKnife() -- Usamos cuchillo para flingear
+            local character = self.Character
+            if not character then return false end
+            -- Buscar cuchillo en el personaje
+            if character:FindFirstChild("Knife") then
+                --print("Cuchillo ya equipado en personaje.")
+                return true
+            end
+            -- Buscar cuchillo en la mochila
+            local knife = self.Player.Backpack:FindFirstChild("Knife")
+            if knife then
+                --print("Equipando cuchillo desde mochila.")
+                knife.Parent = character
+                task.wait(0.1) -- Pequeña pausa para asegurar el equipamiento
+                return true
+            end
+            --print("No se encontró cuchillo en personaje ni mochila.")
+            return false
+        end
+
+        if not equipKnife() then
+            WindUI:Notify({Title = "Sacar Asesino",Content = "No se encontró el cuchillo para flingear. Deteniéndo...",Duration = 3})
+            self.IsFlingingMurder = false
+            self:StopFlingNoclip()
+            return
+        end
+
+        -- Función para encontrar al asesino actual (usa la misma lógica que el ESP)
+        local function findMurdererFromESPLogic()
+            for _, player in ipairs(Players:GetPlayers()) do
+                if player ~= LocalPlayer and player.Character then -- Excluir al jugador local
+                    -- Buscar cuchillo en el personaje
+                    if player.Character:FindFirstChild("Knife") then
+                        return player
+                    end
+                    -- Buscar cuchillo en la mochila
+                    local backpack = player:FindFirstChild("Backpack")
+                    if backpack and backpack:FindFirstChild("Knife") then
+                        return player
+                    end
+                end
+            end
+            return nil -- No se encontró al asesino
+        end
+
+        -- Usar la nueva función de detección
+        local murder = findMurdererFromESPLogic()
+        if not murder or not isPlayerValidTarget(murder) then
+            WindUI:Notify({Title = "Sacar Asesino",Content = "No se encontró al asesino o está muerto. Deteniendo...",Duration = 3})
+            self.IsFlingingMurder = false
+            self:StopFlingNoclip()
+            return
+        end
+
+        -- Tweenear hacia el asesino
+        local targetRoot = murder.Character:FindFirstChild("HumanoidRootPart")
+        if targetRoot then
+            local tween = self:tweenTo(targetRoot.Position, (self.HumanoidRootPart.Position - targetRoot.Position).Magnitude)
+            tween.Completed:Wait()
+            task.wait(0.1) -- Pequeña pausa después del tween
+        end
+
+        -- Repetir el proceso mientras la bolsa esté llena
+        while self.bag_full and self.Enabled and self.IsFlingingMurder do
+            -- Usar la nueva función de detección en cada iteración
+            murder = findMurdererFromESPLogic()
+            if not murder or not isPlayerValidTarget(murder) then
+                WindUI:Notify({Title = "Sacar Asesino",Content = "Asesino ya no es válido. Deteniendo...",Duration = 3})
+                break -- Salir del bucle si no es válido
+            end
+
+            -- Equipar cuchillo antes de cada intento
+            if not equipKnife() then
+                WindUI:Notify({Title = "Sacar Asesino",Content = "Cuchillo perdido. Deteniendo...",Duration = 3})
+                break -- Salir del bucle si no hay cuchillo
+            end
+
+            targetRoot = murder.Character:FindFirstChild("HumanoidRootPart")
+            if targetRoot then
+                -- Intentar flingear con el cuchillo (Stab)
+                local knife = self.Character:FindFirstChild("Knife")
+                if knife and knife:FindFirstChild("Stab") then
+                    local lp = Players.LocalPlayer
+                    local c = nil
+                    -- Simular el proceso de "hiddenfling"
+                    local function a()
+                        if not c then
+                            c = {CFrame = self.HumanoidRootPart.CFrame}
+                        end
+                        self.HumanoidRootPart.CFrame = c.CFrame * CFrame.new(0, 0.5, 0)
+                    end
+                    local b = RunService.Heartbeat:Connect(a)
+                    -- Aplicar velocidad alta opuesta para "flingear"
+                    local hrp = self.HumanoidRootPart
+                    local vel = hrp.Velocity
+                    local movel = 0.1
+                    hrp.Velocity = Vector3.new(vel.X, 0, vel.Z) + (hrp.CFrame.LookVector * -5000) + Vector3.new(0, 5000, 0)
+                    task.wait(0.1)
+                    hrp.Velocity = Vector3.new(0, 0, 0)
+                    -- Atacar inmediatamente después
+                    knife.Stab:FireServer("Down")
+                    WindUI:Notify({Title = "Sacar Asesino",Content = "Intentando expulsar a " .. murder.Name,Duration = 1})
+                end
+            end
+            task.wait(0.5) -- Intervalo entre intentos
+        end
+        -- Al finalizar, detener
+        self.IsFlingingMurder = false
+        self:StopFlingNoclip()
+        WindUI:Notify({Title = "Sacar Asesino",Content = "¡Secuencia finalizada! Esperando nueva ronda...",Duration = 3})
+        -- No se reanuda farmeo aquí, lo hace RoundStart
+    end)
 end
 
 -- Función para cargar animación de esconderse
 function AutoFarm:LoadHideAnimation()
-	if self.Character and self.Character:FindFirstChildOfClass("Humanoid") then
-		local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			local animator = humanoid:FindFirstChildOfClass("Animator")
-			if animator then
-				local animation = Instance.new("Animation")
-				animation.AnimationId = self.AnimationId
-				self.HideAnimationTrack = animator:LoadAnimation(animation)
-				return true
-			end
-		end
-	end
-	return false
+    if self.Character and self.Character:FindFirstChildOfClass("Humanoid") then
+        local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            local animator = humanoid:FindFirstChildOfClass("Animator")
+            if animator then
+                local animation = Instance.new("Animation")
+                animation.AnimationId = self.AnimationId
+                self.HideAnimationTrack = animator:LoadAnimation(animation)
+                return true
+            end
+        end
+    end
+    return false
 end
 
 -- Función para reproducir animación de esconderse
 function AutoFarm:PlayHideAnimation()
-	if self.HideAnimationTrack then
-		self.HideAnimationTrack:Play()
+    if self.HideAnimationTrack then
+        self.HideAnimationTrack:Play()
         self.HideAnimationTrack.Looped = true
-	elseif self:LoadHideAnimation() then
-		self.HideAnimationTrack:Play()
+    elseif self:LoadHideAnimation() then
+        self.HideAnimationTrack:Play()
         self.HideAnimationTrack.Looped = true
-	end
+    end
 end
 
 -- Función para detener animación de esconderse
 function AutoFarm:StopHideAnimation()
-	if self.HideAnimationTrack then
-		self.HideAnimationTrack:Stop()
-		self.HideAnimationTrack:Destroy() -- Limpiar
-		self.HideAnimationTrack = nil
-	end
+    if self.HideAnimationTrack then
+        self.HideAnimationTrack:Stop()
+        self.HideAnimationTrack:Destroy() -- Limpiar
+        self.HideAnimationTrack = nil
+    end
 end
 
 -- Función para activar Noclip de esconderse
@@ -1965,81 +2486,37 @@ function AutoFarm:StopFlingNoclip()
     end
 end
 
-
+-- Función para cargar animación principal
 function AutoFarm:LoadAnimation()
-	if self.Character and self.Character:FindFirstChildOfClass("Humanoid") then
-		local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
-		if humanoid then
-			local animator = humanoid:FindFirstChildOfClass("Animator")
-			if animator then
-				local animation = Instance.new("Animation")
-				animation.AnimationId = self.AnimationId
-				self.AnimationTrack = animator:LoadAnimation(animation)
-				return true
-			end
-		end
-	end
-	return false
+    if self.Character and self.Character:FindFirstChildOfClass("Humanoid") then
+        local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
+        if humanoid then
+            local animator = humanoid:FindFirstChildOfClass("Animator")
+            if animator then
+                local animation = Instance.new("Animation")
+                animation.AnimationId = self.AnimationId
+                self.AnimationTrack = animator:LoadAnimation(animation)
+                return true
+            end
+        end
+    end
+    return false
 end
 
+-- Función para reproducir animación principal
 function AutoFarm:PlayAnimation()
-	if self.AnimationTrack then
-		self.AnimationTrack:Play()
-	elseif self:LoadAnimation() then
-		self.AnimationTrack:Play()
-	end
+    if self.AnimationTrack then
+        self.AnimationTrack:Play()
+    elseif self:LoadAnimation() then
+        self.AnimationTrack:Play()
+    end
 end
 
 function AutoFarm:StopAnimation()
-	if self.AnimationTrack then
-		self.AnimationTrack:Stop()
-		self.AnimationTrack = nil
-	end
-end
-
-AutoFarm.Player.CharacterAdded:Connect(function(newChar)
-	AutoFarm.Character = newChar
-	AutoFarm.HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
-	AutoFarm.start_position = AutoFarm.HumanoidRootPart.CFrame
-	if AutoFarm.Enabled then
-		task.wait(1)
-		AutoFarm.bag_full = false
-		AutoFarm.IsKilling = false
-        AutoFarm.IsAutoShooting = false
-        AutoFarm.IsFlingingMurder = false
-        AutoFarm.IsHiding = false
-		AutoFarm:LoadAnimation()
-		if AutoFarm.AnimationTrack then
-			AutoFarm.AnimationTrack:Play()
-		end
-		if not AutoFarm.FarmingLoop or coroutine.status(AutoFarm.FarmingLoop) == "dead" then
-			AutoFarm:startFarmingLoop()
-		end
-	end
-end)
-
-if AutoFarm.Player.Character then
-	AutoFarm.Character = AutoFarm.Player.Character
-	AutoFarm.HumanoidRootPart = AutoFarm.Character:WaitForChild("HumanoidRootPart")
-	AutoFarm.start_position = AutoFarm.HumanoidRootPart.CFrame
-end
-
-function AutoFarm:getNearestCoin()
-	local closest_coin, min_distance = nil, math.huge
-	for _, model in pairs(Workspace:GetChildren()) do
-		if model:FindFirstChild("CoinContainer") then
-			for _, coin in pairs(model.CoinContainer:GetChildren()) do
-				if coin:GetAttribute("CoinID") == self.ToFarm and coin:FindFirstChild("TouchInterest") then
-					local distance = (self.HumanoidRootPart.Position - coin.Position).Magnitude
-					if distance < min_distance then
-						closest_coin = coin
-						min_distance = distance
-					end
-				end
-			end
-		end
-	end
-	return closest_coin, min_distance
+    if self.AnimationTrack then
+        self.AnimationTrack:Stop()
+        self.AnimationTrack = nil
+    end
 end
 
 -- Función para moverse suavemente usando TweenService, ajustada por AutoFarm.speed
@@ -2048,6 +2525,7 @@ function AutoFarm:tweenTo(position, distance)
     local targetSpeed = self.speed
     local baseSpeed = 31 -- Valor de referencia
     local adjustedTime = distance / targetSpeed
+
     -- Limitar el tiempo para evitar movimientos demasiado lentos o rápidos
     adjustedTime = math.clamp(adjustedTime, 0.05, 5) -- Entre 0.05s y 5s
 
@@ -2057,654 +2535,26 @@ function AutoFarm:tweenTo(position, distance)
     return tween
 end
 
-
-function AutoFarm:startFarmingLoop()
-    if AutoFarm.FarmingLoop then
-        coroutine.close(AutoFarm.FarmingLoop)
-    end
-    AutoFarm.FarmingLoop = task.spawn(function()
-        local firstCandyCollected = false
-        local stuckTimer = 0
-        local lastPosition = nil
-        local isStuck = false
-        local lastCoinCheckTime = tick()
-
-        while self.Enabled do
-            -- 🔄 VERIFICAR SI LA BOLSA ESTÁ LLENA (PAUSAR FARMEO)
-            if self.bag_full then
-                -- 🛑 DETENER ANIMACIÓN MIENTRAS ESTÁ PAUSADO (la de farmeo)
-                self:StopAnimation()
-                -- ⏳ ESPERAR HASTA QUE EL JUEGO VUELVA A INICIAR UNA RONDA (y se vacíe la bolsa)
-                repeat
-                    task.wait(1)
-                until not self.bag_full or not self.Enabled
-                -- 🔄 REANUDAR FARMEO
-                if self.Enabled then
-                    self:PlayAnimation()
-                    firstCandyCollected = false
-                    stuckTimer = 0
-                    lastPosition = nil
-                    isStuck = false
-                    lastCoinCheckTime = tick()
-                end
-                continue
-            end
-
-            if self.Character and self.HumanoidRootPart then
-                -- 🔒 VERIFICAR QUE NO ESTÉ EN LOBBY
-                if self.HumanoidRootPart.Position.Y < -10 then -- Si está en el lobby, esperar
-                    task.wait(1)
-                    continue
-                end
-
-                -- 🎯 DETECCIÓN DE ATRACAMIENTO
-                local currentPosition = self.HumanoidRootPart.Position
-                if lastPosition then
-                    local distanceMoved = (currentPosition - lastPosition).Magnitude
-                    if distanceMoved < 1 then -- Si se movió menos de 1 unidad
-                        stuckTimer = stuckTimer + 0.1
-                    else
-                        stuckTimer = 0
-                        isStuck = false
-                    end
-                    -- Si está atascado por más de 0.5 segundos
-                    if stuckTimer >= 0.5 and not isStuck then
-                        isStuck = true
-                        -- WindUI:Notify({ -- Opcional: Notificar atascamiento
-                        --     Title = "Auto Farm",
-                        --     Content = "¡Detectado atascamiento! Aplicando solución...",
-                        --     Duration = 2
-                        -- })
-                        -- 🚀 SOLUCIÓN: DETENER ANIMACIÓN Y HACER SALTO
-                        self:StopAnimation()
-                        -- Hacer que el personaje salte
-                        local humanoid = self.Character:FindFirstChildOfClass("Humanoid")
-                        if humanoid then
-                            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-                        end
-                        -- Pequeño movimiento lateral para desatascar
-                        local randomOffset = Vector3.new(
-                            math.random(-2, 2),
-                            0,
-                            math.random(-2, 2)
-                        )
-                        self.HumanoidRootPart.CFrame = self.HumanoidRootPart.CFrame + randomOffset
-                        task.wait(0.2)
-                        -- 🔄 REANUDAR ANIMACIÓN DESPUÉS DE DESATASCAR
-                        self:PlayAnimation()
-                    end
-                end
-                lastPosition = currentPosition
-
-                local coin, distance = self:getNearestCoin()
-                if coin then
-                    -- 🚀 TP RÁPIDO SOLO PARA EL PRIMER CANDY
-                    if not firstCandyCollected then
-                        -- TP rápido al primer candy
-                        self.HumanoidRootPart.CFrame = coin.CFrame
-                        firstCandyCollected = true
-                        -- Esperar un momento para asegurar la recogida
-                        task.wait(0.2)
-                    else
-                        -- 🎯 TWEEN HACIA EL CANDY CON VELOCIDAD AJUSTADA
-                        local tween = self:tweenTo(coin.Position, distance)
-
-                        -- ⏰ ESPERAR EL TWEEN O HASTA QUE EL CANDY DESAPAREZCA
-                        -- Usamos un bucle para verificar si el tween terminó o si el candy se recogió
-                        local tweenCompleted = false
-                        local connection = tween.Completed:Connect(function()
-                            tweenCompleted = true
-                        end)
-
-                        -- Esperar mientras el candy existe y el tween no ha terminado
-                        local checkStartTime = tick()
-                        while coin and coin.Parent and not tweenCompleted and self.Enabled and not self.bag_full do
-                            task.wait(0.05) -- Espera corta para no sobrecargar
-                            -- Salir si pasó demasiado tiempo (posible atasco o candy cogido por otro)
-                            if tick() - checkStartTime > 1.5 then -- Timeout de 1.5 segundos
-                                break
-                            end
-                        end
-
-                        connection:Disconnect()
-
-                        -- Verificar si el candy sigue existiendo
-                        if coin and coin.Parent then
-                            -- El candy aún existe, posiblemente no se recogió
-                            -- TP directo para forzar la recogida
-                            self.HumanoidRootPart.CFrame = coin.CFrame
-                            task.wait(0.1) -- Pequeña pausa para asegurar
-                        end
-
-                    end
-                else
-                    -- 🔄 RESET TIMERS SI NO HAY CANDIES
-                    stuckTimer = 0
-                    isStuck = false
-                end
-            end
-            task.wait(0.1) -- Pequeña pausa en el bucle principal para rendimiento
-        end
-    end)
-end
-
--- 🔄 MODIFICAR EL EVENTO DE BOLSA LLENA
-AutoFarm.CoinCollected.OnClientEvent:Connect(function(coin_type, current, max)
-	if coin_type == AutoFarm.ToFarm then
-        if current == max then
-            AutoFarm.bag_full = true
-            local myRole = getMyRole()
-            local hasGunWeapon = hasGun()
-            local isMurderer = isMyRoleMurderer()
-            local isSheriffOrHero = isMyRoleSheriffOrHero()
-
-            -- 🔫 Auto Shoot After Farm (SI TENGO ARMA Y ESTÁ ACTIVADO, TIENE PRIORIDAD)
-            if AutoFarm.AutoShootAfterFarm and AutoFarm.Enabled and hasGunWeapon and (isSheriffOrHero or myRole == "Innocent" or isMurderer) then -- Permitir cualquier rol si tiene arma y está activado
-                WindUI:Notify({
-                    Title = "Auto Farm",
-                    Content = "¡Bolsa llena! Iniciando secuencia de disparo automático (Arma detectada)...",
-                    Duration = 2
-                })
-                AutoFarm:startAutoShootLoop()
-            -- 🔪 Kill After Farm (si soy Murderer y está activado)
-            elseif AutoFarm.KillAfterFarm and AutoFarm.Enabled and isMurderer then
-                WindUI:Notify({
-                    Title = "Auto Farm",
-                    Content = "¡Saco lleno! Comienza la secuencia de asesinatos como Asesino...",
-                    Duration = 2
-                })
-                AutoFarm:startKillingLoop()
-            -- ⚔️ Fling Murder After Farm (si NO soy el asesino, NO tengo arma, está activado)
-            elseif AutoFarm.FlingMurderAfterFarm and AutoFarm.Enabled and not hasGunWeapon and not isMurderer then -- Asegurar que no soy el asesino y no tengo arma
-                 WindUI:Notify({
-                    Title = "Auto Farm",
-                    Content = "¡Saco lleno! Iniciando secuencia de expulsión del asesino (Fling)...",
-                    Duration = 2
-                })
-                AutoFarm:startFlingMurderLoop() -- Nuevo loop
-            -- 🎭 HIDE After Farm (si soy inocente y no hay otras acciones activadas)
-            else
-                -- Verificar si no hay otras acciones configuradas que deban ocurrir
-                local shouldHide = not AutoFarm.KillAfterFarm and not AutoFarm.AutoShootAfterFarm and not AutoFarm.FlingMurderAfterFarm
-                -- o si está activado pero no se cumplen las condiciones (por ejemplo, soy asesino pero kill after farm está activo)
-                local hideConditionsMet = (not AutoFarm.KillAfterFarm or not isMurderer) and (not AutoFarm.AutoShootAfterFarm or not hasGunWeapon) and (not AutoFarm.FlingMurderAfterFarm or hasGunWeapon or isMurderer) -- Si tengo arma o soy el asesino, no se oculta por fling
-
-                if shouldHide or (not isMurderer and hideConditionsMet) then -- Si se debe ocultar según condiciones
-                    WindUI:Notify({
-                        Title = "Auto Farm",
-                        Content = "¡Saco lleno! Activando sistema de ocultamiento...",
-                        Duration = 3
-                    })
-                    AutoFarm:startHideLoop() -- Nuevo loop
-                else
-                    -- Si no se activa ninguna acción, simplemente se pausa esperando nueva ronda
-                     WindUI:Notify({
-                        Title = "Auto Farm",
-                        Content = "¡Saco lleno! Esperando nueva ronda...",
-                        Duration = 3
-                    })
-                end
-            end
-        end
-	end
-end)
-
--- 🔄 NUEVA FUNCIÓN: startHideLoop
-function AutoFarm:startHideLoop()
-    if AutoFarm.HideLoop then
-        coroutine.close(AutoFarm.HideLoop)
-    end
-    AutoFarm.HideLoop = task.spawn(function()
-        self.IsHiding = true
-        -- Detener animación de farmeo si existe
-        self:StopAnimation()
-        -- Activar animación y noclip de ocultarse
-        self:PlayHideAnimation()
-        self:StartHideNoclip()
-        WindUI:Notify({
-            Title = "Ocultamiento",
-            Content = "¡Sistema de ocultamiento activado!",
-            Duration = 3
-        })
-        -- Esperar hasta que se vacíe la bolsa (nueva ronda)
-        while self.bag_full and self.Enabled do
-            task.wait(1)
-        end
-        -- Al vaciarse la bolsa o desactivar autofarm, detenerse
-        self.IsHiding = false
-        self:StopHideAnimation()
-        self:StopHideNoclip()
-        WindUI:Notify({
-            Title = "Ocultamiento",
-            Content = "¡Sistema de ocultamiento detenido! Reanudando farm...",
-            Duration = 3
-        })
-        -- self:PlayAnimation() -- No se reanuda farmeo aquí, lo hace RoundStart
-        -- self:startFarmingLoop() -- No se reanuda farmeo aquí, lo hace RoundStart
-    end)
-end
-
--- 🔄 NUEVA FUNCIÓN: startFlingMurderLoop
-function AutoFarm:startFlingMurderLoop()
-    if AutoFarm.FlingMurderLoop then
-        coroutine.close(AutoFarm.FlingMurderLoop)
-    end
-    AutoFarm.FlingMurderLoop = task.spawn(function()
-        self.IsFlingingMurder = true
-        -- Detener animación de farmeo si existe
-        self:StopAnimation()
-        -- Activar Noclip temporal para fling
-        self:StartFlingNoclip()
-        WindUI:Notify({
-            Title = "Sacar Asesino",
-            Content = "Buscando y expulsando al asesino...",
-            Duration = 3
-        })
-
-        local function equipKnife() -- Usamos cuchillo para flingear
-            local character = self.Character
-            if not character then return false end
-            if character:FindFirstChild("Knife") then return true end
-            local knife = self.Player.Backpack:FindFirstChild("Knife")
-            if knife then
-                knife.Parent = character
-                return true
-            end
-            return false
-        end
-
-        if not equipKnife() then
-            WindUI:Notify({
-                Title = "Sacar Asesino",
-                Content = "No se encontró el cuchillo para flingear. Deteniendo...",
-                Duration = 3
-            })
-            self.IsFlingingMurder = false
-            self:StopFlingNoclip()
-            return
-        end
-
-        local murder = findMurderer()
-        if not murder or not isPlayerValidTarget(murder) then
-             WindUI:Notify({
-                Title = "Sacar Asesino",
-                Content = "No se encontró al asesino o está muerto. Deteniendo...",
-                Duration = 3
-            })
-            self.IsFlingingMurder = false
-            self:StopFlingNoclip()
-            return
-        end
-
-        -- Tweenear hacia el asesino
-        local targetRoot = murder.Character:FindFirstChild("HumanoidRootPart")
-        if targetRoot then
-            local tween = self:tweenTo(targetRoot.Position, (self.HumanoidRootPart.Position - targetRoot.Position).Magnitude)
-            tween.Completed:Wait()
-            task.wait(0.1) -- Pequeña pausa después del tween
-        end
-
-        -- Repetir el proceso mientras la bolsa esté llena
-        while self.bag_full and self.Enabled and self.IsFlingingMurder do
-            murder = findMurderer()
-            if not murder or not isPlayerValidTarget(murder) then
-                 WindUI:Notify({
-                    Title = "Sacar Asesino",
-                    Content = "Asesino ya no es válido. Deteniendo...",
-                    Duration = 3
-                })
-                break
-            end
-
-            -- Equipar cuchillo antes de cada intento
-            if not equipKnife() then
-                 WindUI:Notify({
-                    Title = "Sacar Asesino",
-                    Content = "Cuchillo perdido. Deteniendo...",
-                    Duration = 3
-                })
-                break
-            end
-
-            targetRoot = murder.Character:FindFirstChild("HumanoidRootPart")
-            if targetRoot then
-                -- Intentar flingear con el cuchillo (Stab)
-                local knife = self.Character:FindFirstChild("Knife")
-                if knife and knife:FindFirstChild("Stab") then
-                    -- Este es el mecanismo de fling basado en el sistema del botón "Sacar Volar A Todos"
-                    -- Se simula el proceso de "hiddenfling" del sistema original
-                    local lp = Players.LocalPlayer
-                    local c = nil
-                    local hrp = self.HumanoidRootPart
-                    local vel = hrp.Velocity
-                    local movel = 0.1
-                    -- Aplicar velocidad alta opuesta para "flingear"
-                    hrp.Velocity = Vector3.new(vel.X, 0, vel.Z) + (hrp.CFrame.LookVector * -5000) + Vector3.new(0, 5000, 0)
-                    task.wait(0.1)
-                    hrp.Velocity = Vector3.new(0, 0, 0)
-                    -- Atacar inmediatamente después
-                    knife.Stab:FireServer("Down")
-                    WindUI:Notify({
-                        Title = "Sacar Asesino",
-                        Content = "Intentando expulsar a " .. murder.Name,
-                        Duration = 1
-                    })
-                end
-            end
-            task.wait(0.5) -- Intervalo entre intentos
-        end
-
-        -- Al finalizar, detener
-        self.IsFlingingMurder = false
-        self:StopFlingNoclip()
-        WindUI:Notify({
-            Title = "Sacar Asesino",
-            Content = "¡Secuencia finalizada! Esperando nueva ronda...",
-            Duration = 3
-        })
-        -- No se reanuda farmeo aquí, lo hace RoundStart
-    end)
-end
-
-
--- 🔫 FUNCIÓN AUTO SHOOT MURDER COMPLETA (Igual al Fluent)
-function AutoFarm:startAutoShootLoop()
-    if AutoFarm.AutoShootLoop then
-        coroutine.close(AutoFarm.AutoShootLoop)
-    end
-    AutoFarm.AutoShootLoop = task.spawn(function()
-        self.IsAutoShooting = true
-        self:StopAnimation()
-        WindUI:Notify({
-            Title = "Disparo Auto Después De Farm",
-            Content = "Iniciando secuencia de disparo automático ...",
-            Duration = 3
-        })
-        -- 🔄 DOBLE LOOP: TP + SHOOT (Como en Fluent)
-        local tpLoop = task.spawn(function()
-            while self.IsAutoShooting and self.Enabled do
-                local murder = nil
-                -- Detectar murderer
-                for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-                    if player ~= game.Players.LocalPlayer then
-                        local hasKnife = false
-                        if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
-                            hasKnife = true
-                        end
-                        if player.Character and player.Character:FindFirstChild("Knife") then
-                            hasKnife = true
-                        end
-                        if hasKnife then
-                            murder = player
-                            break
-                        end
-                    end
-                end
-                -- 🔗 TP CONSTANTE DETRÁS DEL MURDERER
-                if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
-                    local hrp = murder.Character.HumanoidRootPart
-                    local myChar = self.Character
-                    local myHRP = myChar and myChar:FindFirstChild("HumanoidRootPart")
-                    if myHRP then
-                        -- TP a 15 unidades detrás del murderer (igual que Fluent)
-                        local backCFrame = hrp.CFrame * CFrame.new(0, 0, 15)
-                        myHRP.CFrame = backCFrame
-                    end
-                end
-                task.wait(0) -- TP rápido como en Fluent
-            end
-        end)
-        -- 🔫 LOOP DE DISPARO CONSTANTE
-        while self.IsAutoShooting and self.Enabled do
-            -- Verificar si tenemos el arma
-            if not hasGun() then
-                WindUI:Notify({
-                    Title = "Disparo Auto",
-                    Content = "¡No se encontró ningún arma! Deteniendo el disparo automático..",
-                    Duration = 3
-                })
-                break
-            end
-            local murder = nil
-            -- Detectar murderer
-            for _, player in ipairs(game:GetService("Players"):GetPlayers()) do
-                if player ~= game.Players.LocalPlayer then
-                    local hasKnife = false
-                    if player:FindFirstChild("Backpack") and player.Backpack:FindFirstChild("Knife") then
-                        hasKnife = true
-                    end
-                    if player.Character and player.Character:FindFirstChild("Knife") then
-                        hasKnife = true
-                    end
-                    if hasKnife then
-                        murder = player
-                        break
-                    end
-                end
-            end
-            if murder and murder.Character and murder.Character:FindFirstChild("HumanoidRootPart") then
-                local char = self.Character
-                if not char then break end
-                -- Equipar arma automáticamente
-                local gun = char:FindFirstChild("Gun") or self.Player.Backpack:FindFirstChild("Gun")
-                if gun and gun.Parent == self.Player.Backpack then
-                    gun.Parent = char
-                    task.wait(0.1)
-                end
-                local hrp = murder.Character.HumanoidRootPart
-                local murderPos = hrp.Position
-                -- 🎯 LEAD SHOT COMPLETO (Fluent)
-                local velocity = hrp.Velocity
-                -- Obtener ping
-                local pingMs = 0
-                local stats = game:GetService("Stats")
-                if stats:FindFirstChild("Network") and stats.Network:FindFirstChild("ServerStatsItem") then
-                    local pingStat = stats.Network.ServerStatsItem:FindFirstChild("Data Ping")
-                    if pingStat then
-                        pingMs = pingStat:GetValue()
-                    end
-                end
-                local pingSec = math.clamp(pingMs / 1000, 0, 1)
-                -- Calcular offset de predicción
-                local leadOffset = velocity * pingSec
-                if velocity.Magnitude < 2 then
-                    leadOffset = Vector3.new(0, 0, 0)
-                end
-                local targetPos = murderPos + leadOffset
-                local args = {1, Vector3.new(targetPos.X, targetPos.Y, targetPos.Z), "AH2"}
-                -- Ejecutar disparo
-                local currentGun = char:FindFirstChild("Gun")
-                if currentGun and currentGun:FindFirstChild("KnifeLocal") and currentGun.KnifeLocal:FindFirstChild("CreateBeam") then
-                    currentGun.KnifeLocal.CreateBeam.RemoteFunction:InvokeServer(unpack(args))
-                    WindUI:Notify({
-                        Title = "Disparo Auto",
-                        Content = "Disparado A" .. murder.Name,
-                        Duration = 1
-                    })
-                end
-            else
-                -- Verificar si hay jugadores vivos
-                local playersAlive = false
-                for _, player in ipairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0 then
-                        playersAlive = true
-                        break
-                    end
-                end
-                if not playersAlive then
-                    WindUI:Notify({
-                        Title = "Disparo Auto",
-                        Content = "No Quedan Jugadores Reanudando farm.",
-                        Duration = 3
-                    })
-                    break
-                end
-            end
-            -- Disparar cada 0.5 segundos (más rápido que antes)
-            task.wait(0.5)
-        end
-        -- Detener el loop de TP cuando termine el de disparo
-        if tpLoop then
-            coroutine.close(tpLoop)
-        end
-        -- Regresar a estado de espera (bolsa llena, esperando ronda)
-        self.IsAutoShooting = false
-        -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
-        WindUI:Notify({
-            Title = "Disparo Auto",
-            Content = "¡Secuencia finalizada! Esperando nueva ronda para reanudar farm...",
-            Duration = 3
-        })
-        -- self:PlayAnimation() -- ❌ No se reanuda aquí
-        -- self:startFarmingLoop() -- ❌ No se reanuda aquí
-    end)
-end
-
--- 🔪 FUNCIÓN KILL AFTER FARM (mejorada)
-function AutoFarm:startKillingLoop()
-	if AutoFarm.KillingLoop then
-		coroutine.close(AutoFarm.KillingLoop)
-	end
-	AutoFarm.KillingLoop = task.spawn(function()
-		self.IsKilling = true
-		self:StopAnimation()
-		-- Verificar que somos Murderer
-		local myRole = getMyRole()
-		if myRole ~= "Murderer" then
-			WindUI:Notify({
-				Title = "Matar Después De Farm",
-				Content = "¡No eres un asesino! ¡Deténer!.",
-				Duration = 3
-			})
-			self.IsKilling = false
-			-- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
-			-- self:PlayAnimation() -- ❌ No se reanuda aquí
-			-- self:startFarmingLoop() -- ❌ No se reanuda aquí
-			return
-		end
-		local function equipKnife()
-			local character = self.Character
-			if not character then return false end
-			if character:FindFirstChild("Knife") then return true end
-			local knife = self.Player.Backpack:FindFirstChild("Knife")
-			if knife then
-				knife.Parent = character
-				return true
-			end
-			return false
-		end
-		if not equipKnife() then
-			WindUI:Notify({
-				Title = "Matar Después De Farm",
-				Content = "No se encontró ningún cuchillo Deteniéndo.",
-				Duration = 3
-			})
-			self.IsKilling = false
-			-- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
-			-- self:PlayAnimation() -- ❌ No se reanuda aquí
-			-- self:startFarmingLoop() -- ❌ No se reanuda aquí
-			return
-		end
-		-- Bucle de eliminación
-		while self.IsKilling and self.Enabled do
-			local localRoot = self.HumanoidRootPart
-			local localChar = self.Character
-			if not localRoot or not localChar then break end
-			local targetsKilled = 0
-			local validTargets = {}
-			-- ✅ Recopilar solo jugadores válidos ACTUALES
-			for _, player in ipairs(Players:GetPlayers()) do
-				if isPlayerValidTarget(player) then
-					table.insert(validTargets, player)
-				end
-			end
-			if #validTargets == 0 then
-				WindUI:Notify({
-					Title = "Matar Después De Farm",
-					Content = "No Quedan Jugadores Reanudando Farm.",
-					Duration = 3
-				})
-				break
-			end
-			-- Atacar a cada objetivo válido
-			for _, target in ipairs(validTargets) do
-				if not self.IsKilling or not self.Enabled then break end
-				if not isPlayerValidTarget(target) then continue end
-				local targetRoot = target.Character:FindFirstChild("HumanoidRootPart")
-				if not targetRoot then continue end
-				-- Teletransporte + rotación precisa hacia el objetivo
-				local lookDirection = (targetRoot.Position - localRoot.Position).unit
-				local newPosition = targetRoot.Position - lookDirection * 3
-				localRoot.CFrame = CFrame.lookAt(newPosition, targetRoot.Position)
-				-- Breve espera para sincronización de rotación
-				task.wait(0.05)
-				-- Verificar nuevamente si sigue siendo válido y atacar
-				if isPlayerValidTarget(target) then
-					local knife = localChar:FindFirstChild("Knife")
-					if knife and knife:FindFirstChild("Stab") then
-						knife.Stab:FireServer("Down")
-						targetsKilled += 1
-					end
-				end
-				task.wait(0.15)
-			end
-			if targetsKilled == 0 then
-				WindUI:Notify({
-					Title = "Matar Después De Farm",
-					Content = "Fracazo Al Matar. Parando.",
-					Duration = 3
-				})
-				break
-			end
-			-- Verificar si quedan más objetivos
-			local stillAlive = false
-			for _, player in ipairs(Players:GetPlayers()) do
-				if isPlayerValidTarget(player) then
-					stillAlive = true
-					break
-				end
-			end
-			if not stillAlive then
-				WindUI:Notify({
-				 Title = "Matar Después De Farm",
-				 Content = "Todos los Jugamos Muertos Reanudando Farm.",
-				 Duration = 2
-			 })
-			 break
-			end
-		 task.wait(0.3)
-		end
-	 -- Regresar a estado de espera (bolsa llena, esperando ronda)
-	 self.IsKilling = false
-	 -- self.bag_full = false -- ❌ NO SE VUELVE A VACIAR AQUÍ
-	 WindUI:Notify({
-		 Title = "Matar Después de Farm",
-		 Content = "¡Secuencia finalizada! Esperando nueva ronda para reanudar farm...",
-		 Duration = 3
-	 })
-	 -- self:PlayAnimation() -- ❌ No se reanuda aquí
-	 -- self:startFarmingLoop() -- ❌ No se reanuda aquí
- end)
-end
-
+-- Función para detener todos los loops y estados
 function AutoFarm:stopAll()
-	self.IsKilling = false
+    self.IsKilling = false
     self.IsAutoShooting = false
     self.IsFlingingMurder = false
     self.IsHiding = false
-	-- self.bag_full = false -- ❌ No se cambia aquí, el juego lo hace
-	self:StopAnimation()
+    -- self.bag_full = false -- ❌ No se cambia aquí, el juego lo hace
+    self:StopAnimation()
     self:StopHideAnimation()
     self:StopHideNoclip()
     self:StopFlingNoclip()
-	if self.FarmingLoop then
-		coroutine.close(self.FarmingLoop)
-		self.FarmingLoop = nil
-	end
-	if self.KillingLoop then
-		coroutine.close(self.KillingLoop)
-		self.KillingLoop = nil
-	end
+
+    if self.FarmingLoop then
+        coroutine.close(self.FarmingLoop)
+        self.FarmingLoop = nil
+    end
+    if self.KillingLoop then
+        coroutine.close(self.KillingLoop)
+        self.KillingLoop = nil
+    end
     if self.AutoShootLoop then
         coroutine.close(self.AutoShootLoop)
         self.AutoShootLoop = nil
@@ -2721,9 +2571,9 @@ end
 
 -- Eventos de ronda
 AutoFarm.RoundStart.OnClientEvent:Connect(function()
-	if AutoFarm.Enabled then
-		AutoFarm.bag_full = false -- ✅ El juego vacía la bolsa al inicio de ronda
-		AutoFarm.IsKilling = false
+    if AutoFarm.Enabled then
+        AutoFarm.bag_full = false -- ✅ El juego vacía la bolsa al inicio de ronda
+        AutoFarm.IsKilling = false
         AutoFarm.IsAutoShooting = false
         AutoFarm.IsFlingingMurder = false
         AutoFarm.IsHiding = false
@@ -2731,18 +2581,18 @@ AutoFarm.RoundStart.OnClientEvent:Connect(function()
         AutoFarm:StopHideAnimation()
         AutoFarm:StopHideNoclip()
         AutoFarm:StopFlingNoclip()
-		if AutoFarm.AnimationTrack then
-			AutoFarm.AnimationTrack:Play()
-		end
-		if not AutoFarm.FarmingLoop or coroutine.status(AutoFarm.FarmingLoop) == "dead" then
-			AutoFarm:startFarmingLoop()
-		end
-	end
+        if AutoFarm.AnimationTrack then
+            AutoFarm.AnimationTrack:Play()
+        end
+        if not AutoFarm.FarmingLoop or coroutine.status(AutoFarm.FarmingLoop) == "dead" then
+            AutoFarm:startFarmingLoop()
+        end
+    end
 end)
 
 AutoFarm.RoundEnd.OnClientEvent:Connect(function()
-	if AutoFarm.Enabled then
-		AutoFarm.IsKilling = false
+    if AutoFarm.Enabled then
+        AutoFarm.IsKilling = false
         AutoFarm.IsAutoShooting = false
         AutoFarm.IsFlingingMurder = false
         AutoFarm.IsHiding = false
@@ -2751,162 +2601,131 @@ AutoFarm.RoundEnd.OnClientEvent:Connect(function()
         AutoFarm:StopHideNoclip()
         AutoFarm:StopFlingNoclip()
         -- AutoFarm.bag_full = false -- ❌ No se cambia aquí, se mantiene el estado actual
-	end
+    end
 end)
 
 -- Toggles
-FarmTab:Toggle({
-	Title = "Auto Farm",
-	Desc = "Auto Farm, Mejor Para Afk (En beta).",
-	Icon = "bird",
-	Type = "Checkbox",
-	Default = false,
-	Callback = function(state)
-		AutoFarm.Enabled = state
-		if state then
-			-- Verificar que el personaje esté cargado antes de activar
-			if AutoFarm.Character and AutoFarm.HumanoidRootPart then
-				AutoFarm:PlayAnimation()
-				AutoFarm:startFarmingLoop()
-				WindUI:Notify({
-					Title = "Auto Farm Activado",
-					Content = "La animación comenzó Auto Farm se activó!",
-					Duration = 2
-				})
-			else
-				WindUI:Notify({
-					Title = "Error Auto Farm",
-					Content = "Personaje no cargado. Espere y active de nuevo.",
-					Duration = 3
-				})
-				AutoFarm.Enabled = false -- Desactivar si no está listo
-			end
-		else
-			AutoFarm:stopAll() -- Detener TODO al desactivar el toggle principal
-			WindUI:Notify({
-				Title = "Auto Farm Desactivado",
-				Content = "Todos Los Funciones Se Detienen.",
-				Duration = 1
-			})
-		end
-	end
-})
+FarmTab:Toggle({Title = "Auto Farm",Desc = "Auto Farm, Mejor Para Afk (En beta).",Icon = "bird",Type = "Checkbox",Default = false,Callback = function(state)
+    AutoFarm.Enabled = state
+    if state then
+        -- Verificar que el personaje esté cargado antes de activar
+        if AutoFarm.Character and AutoFarm.HumanoidRootPart then
+            AutoFarm:PlayAnimation()
+            AutoFarm:startFarmingLoop()
+            WindUI:Notify({Title = "Auto Farm Activado",Content = "La animación comenzó Auto Farm se activó!",Duration = 2})
+        else
+            WindUI:Notify({Title = "Error Auto Farm",Content = "Personaje no cargado. Espere y active de nuevo.",Duration = 3})
+            AutoFarm.Enabled = false -- Desactivar si no está listo
+        end
+    else
+        AutoFarm:stopAll() -- Detener TODO al desactivar el toggle principal
+        WindUI:Notify({Title = "Auto Farm Desactivado",Content = "Todos Los Funciones Se Detienen.",Duration = 1})
+    end
+end})
 
 -- 🔫 NUEVO TOGGLE: Disparar Auto Después de Farm
-FarmTab:Toggle({
-	Title = "Disparar Auto Después de Farm",
-	Desc = "Disparar Automático Al Asesino (Solo Si Tienes Arma)",
-	Icon = "target",
-	Type = "Checkbox",
-	Default = false,
-	Callback = function(state)
-		AutoFarm.AutoShootAfterFarm = state
-		if state then
-			WindUI:Notify({
-				Title = "Disparo Auto Farm",
-				Content = "Activado: Disparará automáticamente al asesino si tienes un arma.",
-				Duration = 3
-			})
-		else
-			if AutoFarm.IsAutoShooting then
-				AutoFarm.IsAutoShooting = false
-				-- No se reanuda el farmeo aquí
-			end
-			WindUI:Notify({
-				Title = "Disparar Auto Farm",
-				Content = "Desactivado",
-				Duration = 3
-			})
-		end
-	end
-})
+FarmTab:Toggle({Title = "Disparar Auto Después de Farm",Desc = "Disparar Automático Al Asesino (Solo Si Tienes Arma)",Icon = "target",Type = "Checkbox",Default = false,Callback = function(state)
+    AutoFarm.AutoShootAfterFarm = state
+    if state then
+        WindUI:Notify({Title = "Disparo Auto Farm",Content = "Activado: Disparará automáticamente al asesino si tienes un arma.",Duration = 3})
+    elseif AutoFarm.IsAutoShooting then
+        AutoFarm.IsAutoShooting = false
+        -- No se reanuda el farmeo aquí
+    end
+    WindUI:Notify({Title = "Disparar Auto Farm",Content = "Desactivado",Duration = 3})
+end})
 
 -- 🔪 Kill After Farm existente
-FarmTab:Toggle({
-	Title = "Matar Después De Farm",
-	Desc = "Elimina a todos los jugadores inocentes después de Farm (Solo Asesino)",
-	Icon = "sword",
-	Type = "Checkbox",
-	Default = false,
-	Callback = function(state)
-		AutoFarm.KillAfterFarm = state
-		if state then
-			WindUI:Notify({
-				Title = "Matar Después De Farm",
-				Content = "Activado - Matará a todos después de Farm (Solo asesino)",
-				Duration = 2
-			})
-		else
-			if AutoFarm.IsKilling then
-				AutoFarm.IsKilling = false
-				-- No se reanuda el farmeo aquí
-			end
-			WindUI:Notify({
-				Title = "Matar Auto Farm",
-				Content = "Desactivado",
-				Duration = 2
-			})
-		end
-	end
-})
+FarmTab:Toggle({Title = "Matar Después De Farm",Desc = "Elimina a todos los jugadores inocentes después de Farm (Solo Asesino)",Icon = "sword",Type = "Checkbox",Default = false,Callback = function(state)
+    AutoFarm.KillAfterFarm = state
+    if state then
+        WindUI:Notify({Title = "Matar Después De Farm",Content = "Activado - Matará a todos después de Farm (Solo asesino)",Duration = 2})
+    elseif AutoFarm.IsKilling then
+        AutoFarm.IsKilling = false
+        -- No se reanuda el farmeo aquí
+    end
+    WindUI:Notify({Title = "Matar Auto Farm",Content = "Desactivado",Duration = 2})
+end})
 
 -- ⚔️ NUEVO TOGGLE: Sacar Asesino Después de Farm
-FarmTab:Toggle({
-    Title = "Sacar Asesino Después de Farm",
-    Desc = "Intenta expulsar al asesino usando cuchillo (si no eres asesino y no tienes arma)",
-    Icon = "zap",
-    Type = "Checkbox",
-    Default = false,
-    Callback = function(state)
-        AutoFarm.FlingMurderAfterFarm = state
-        if state then
-            WindUI:Notify({
-                Title = "Sacar Asesino Farm",
-                Content = "Activado: Intentará expulsar al asesino con fling al llenar la bolsa (si no tienes arma y no eres el asesino).",
-                Duration = 3
-            })
-        else
-            if AutoFarm.IsFlingingMurder then
-                AutoFarm.IsFlingingMurder = false
-                -- No se reanuda el farmeo aquí
-            end
-            WindUI:Notify({
-                Title = "Sacar Asesino Farm",
-                Content = "Desactivado",
-                Duration = 3
-            })
-        end
+FarmTab:Toggle({Title = "Sacar Asesino Después de Farm",Desc = "Intenta expulsar al asesino usando cuchillo (si no eres asesino y no tienes arma)",Icon = "zap",Type = "Checkbox",Default = false,Callback = function(state)
+    AutoFarm.FlingMurderAfterFarm = state
+    if state then
+        WindUI:Notify({Title = "Sacar Asesino Farm",Content = "Activado: Intentará expulsar al asesino con fling al llenar la bolsa (si no tienes arma y no eres el asesino).",Duration = 3})
+    elseif AutoFarm.IsFlingingMurder then
+        AutoFarm.IsFlingingMurder = false
+        -- No se reanuda el farmeo aquí
     end
-})
+    WindUI:Notify({Title = "Sacar Asesino Farm",Content = "Desactivado",Duration = 3})
+end})
 
--- Tus teleports existentes (mantenidos)
-FarmTab:Button({
-    Title = "Teleport A la Mapa",
-    Icon = "map-pin",
-    Callback = function()
-        local map = Workspace:FindFirstChild("CoinContainer", true)
-        if map then
-            local part = map:FindFirstChildWhichIsA("BasePart", true)
-            if part and env.Char then
-                env.Char:PivotTo(part.CFrame * CFrame.new(0, 5, 0))
-            end
-        end
-    end
-})
+-- Evento de recogida de moneda
+AutoFarm.CoinCollected.OnClientEvent:Connect(function(coin_type, current, max)
+    if coin_type == AutoFarm.ToFarm then
+        if current == max then
+            AutoFarm.bag_full = true
+            local myRole = getMyRole()
+            local hasGunWeapon = hasGun()
+            local isMurderer = isMyRoleMurderer()
+            local isSheriffOrHero = isMyRoleSheriffOrHero()
 
-FarmTab:Button({
-    Title = "Teleport Al Lobby",
-    Icon = "home",
-    Callback = function()
-        local lobby = workspace.Lobby
-        if lobby then
-            local part = lobby:FindFirstChildWhichIsA("BasePart", true)
-            if part and env.Char then
-                env.Char:PivotTo(part.CFrame * CFrame.new(0, 30, 0))
+            -- 🔫 Auto Shoot After Farm (SI TENGO ARMA Y ESTÁ ACTIVADO, TIENE PRIORIDAD)
+            if AutoFarm.AutoShootAfterFarm and AutoFarm.Enabled and hasGunWeapon and (isSheriffOrHero or myRole == "Innocent" or isMurderer) then -- Permitir cualquier rol si tiene arma y está activado
+                WindUI:Notify({Title = "Auto Farm",Content = "¡Bolsa llena! Iniciando secuencia de disparo automático (Arma detectada)...",Duration = 2})
+                AutoFarm:startAutoShootLoop()
+            -- 🔪 Kill After Farm (si soy Murderer y está activado)
+            elseif AutoFarm.KillAfterFarm and AutoFarm.Enabled and isMurderer then
+                WindUI:Notify({Title = "Auto Farm",Content = "¡Saco lleno! Comienza la secuencia de asesinatos como Asesino...",Duration = 2})
+                AutoFarm:startKillingLoop()
+            -- ⚔️ Fling Murder After Farm (si NO soy el asesino, NO tengo arma, está activado)
+            elseif AutoFarm.FlingMurderAfterFarm and AutoFarm.Enabled and not hasGunWeapon and not isMurderer then -- Asegurar que no soy el asesino y no tengo arma
+                WindUI:Notify({Title = "Auto Farm",Content = "¡Saco lleno! Iniciando secuencia de expulsión del asesino (Fling)...",Duration = 2})
+                AutoFarm:startFlingMurderLoop() -- Nuevo loop
+            -- 🎭 HIDE After Farm (si soy inocente y no hay otras acciones activadas)
+            else
+                -- Verificar si no hay otras acciones configuradas que deban ocurrir
+                local shouldHide = not AutoFarm.KillAfterFarm and not AutoFarm.AutoShootAfterFarm and not AutoFarm.FlingMurderAfterFarm
+                -- o si está activado pero no se cumplen las condiciones (por ejemplo, soy asesino pero kill after farm está activo)
+                local hideConditionsMet = (not AutoFarm.KillAfterFarm or not isMurderer) and (not AutoFarm.AutoShootAfterFarm or not hasGunWeapon) and (not AutoFarm.FlingMurderAfterFarm or hasGunWeapon or isMurderer) -- Si tengo arma o soy el asesino, no se oculta por fling
+                if shouldHide or (not isMurderer and hideConditionsMet) then -- Si se debe ocultar según condiciones
+                    WindUI:Notify({Title = "Auto Farm",Content = "¡Saco lleno! Activando sistema de ocultamiento...",Duration = 3})
+                    AutoFarm:startHideLoop() -- Nuevo loop
+                else
+                    -- Si no se activa ninguna acción, simplemente se pausa esperando nueva ronda
+                    WindUI:Notify({Title = "Auto Farm",Content = "¡Saco lleno! Esperando nueva ronda...",Duration = 3})
+                end
             end
         end
     end
-})
+end)
+
+-- Conexion del personaje
+if AutoFarm.Player.Character then
+    AutoFarm.Character = AutoFarm.Player.Character
+    AutoFarm.HumanoidRootPart = AutoFarm.Character:WaitForChild("HumanoidRootPart")
+    AutoFarm.start_position = AutoFarm.HumanoidRootPart.CFrame
+end
+
+AutoFarm.Player.CharacterAdded:Connect(function(newChar)
+    AutoFarm.Character = newChar
+    AutoFarm.HumanoidRootPart = newChar:WaitForChild("HumanoidRootPart")
+    AutoFarm.start_position = AutoFarm.HumanoidRootPart.CFrame
+    if AutoFarm.Enabled then
+        task.wait(1)
+        AutoFarm.bag_full = false
+        AutoFarm.IsKilling = false
+        AutoFarm.IsAutoShooting = false
+        AutoFarm.IsFlingingMurder = false
+        AutoFarm.IsHiding = false
+        AutoFarm:LoadAnimation()
+        if AutoFarm.AnimationTrack then
+            AutoFarm.AnimationTrack:Play()
+        end
+        if not AutoFarm.FarmingLoop or coroutine.status(AutoFarm.FarmingLoop) == "dead" then
+            AutoFarm:startFarmingLoop()
+        end
+    end
+end)
 
 -- === NUEVO AUTOFARM V2 MEJORADO ===
 local NewFarmTab = Window:Tab({Title = "AutoFarm V2", Icon = "coins", Locked = false})
@@ -3589,3 +3408,10 @@ MiscTab:Keybind({
 
 -- === INICIALIZAR LA FUNCIONALIDAD DE LA TECLA ===
 updateToggleKeybind() -- Llama la función para conectar la tecla inicial (Z)
+
+-- Opcional: Botón para forzar toggle desde el menú (puede ser útil como respaldo)
+-- MiscTab:Button({
+--     Title = "Toggle Menu (Boton)",
+--     Icon = "eye",
+--     Callback = toggleUIVisibility
+-- })
