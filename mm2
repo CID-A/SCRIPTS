@@ -2860,7 +2860,7 @@ FarmTab:Slider({
 FarmTab:Dropdown({
     Title = "Tipo de Objeto",
     Icon = "package",
-    Values = {"Candy", "Ball"},
+    Values = {"Coin", "Candy", "Ball"},
     Value = "Candy",
     Callback = function(selected)
         AutoFarm.ToFarm = selected
