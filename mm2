@@ -1924,7 +1924,7 @@ local AutoFarm = {
     HumanoidRootPart = nil,
     start_position = nil,
     bag_full = false,
-    ToFarm = "Candy",
+    ToFarm = "Coin",
     speed = 28, -- Control de velocidad (16=lento, 50=rápido)
     CoinCollected = ReplicatedStorage.Remotes.Gameplay.CoinCollected,
     RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart,
@@ -2942,7 +2942,7 @@ local NewFarmTab = Window:Tab({Title = "AutoFarm V2", Icon = "coins", Locked = f
 
 local NewAutoFarm = {
     Enabled = false,
-    FarmType = "Candy",
+    FarmType = "Coin",
     Speed = 20,
     FarmLoop = nil,
     Character = nil,
@@ -3081,7 +3081,7 @@ NewFarmTab:Slider({
 NewFarmTab:Dropdown({
     Title = "Tipo de Objeto",
     Icon = "package",
-    Values = {"Candy", "Ball"},
+    Values = {"Candy", "Coin", "Ball"},
     Value = "Candy",
     Callback = function(selected)
         NewAutoFarm.FarmType = selected
